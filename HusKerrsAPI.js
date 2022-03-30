@@ -218,7 +218,7 @@ bot.on('message', async (channel, tags, message) => {
         bot.say(channel, `Rock paper scissors enabled.`);
         break;
 
-      case '!bigvanishoff':
+      case '!rpsoff':
         if (!userIds[channel.substring(1)].rps || !tags["mod"]) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET rps = false WHERE user_id = '${channel.substring(1)}';`);

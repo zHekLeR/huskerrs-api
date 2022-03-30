@@ -1,0 +1,28 @@
+{
+  "name": "huskerrsapi",
+  "version": "1.0.0",
+  "description": "API for Warzone commands in Twitch and other stuff.",
+  "main": "HusKerrsAPI.js",
+  "scripts": {
+    "start": "node HusKerrsAPI.js"
+  },
+  "engines": {
+    "node": "16.13.2",
+    "npm": "8.4.0"
+  },
+  "type": "module",
+  "author": "zHekLeR",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.25.0",
+    "crypto": "^1.0.1",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "fs": "^0.0.1-security",
+    "luxon": "^2.3.0",
+    "pg": "^8.7.3",
+    "tmi.js": "^1.8.5",
+    "uniqid": "^5.4.0"
+  }
+}

@@ -744,7 +744,7 @@ async function stats(username, platform) {
     console.log(`${username}:${platform}`);
 
     // Get stats.
-    let data = await lifetime(encodeURIComponent(username), platform);
+    let data = await lifetime(username, platform);
 
     // Format stats.
     let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;

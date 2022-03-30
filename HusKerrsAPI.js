@@ -1027,7 +1027,7 @@ async function teammates(username) {
     let sorted = Array.from(teammates.keys()).sort((a, b) => teammates.get(b) - teammates.get(a));
     
     let retStr = `Weekly Teammates | `;
-    for (let i = 0; i < 5 || sorted.length; i++) {
+    for (let i = 0; i < (sorted.length < 5?sorted.length:5); i++) {
       retStr += `${sorted[i]}: ${teammates.get(sorted[i])} games${i == 4?'':' | '}`;
     }
     
@@ -1061,7 +1061,7 @@ async function gamemodes(username) {
     let sorted = Array.from(gamemodes.keys()).sort((a, b) => gamemodes.get(b) - gamemodes.get(a));
     
     let retStr = `Weekly Game Modes | `;
-    for (let i = 0; i < 5 || sorted.length; i++) {
+    for (let i = 0; i < (sorted.length < 5?sorted.length:5); i++) {
       retStr += `${sorted[i]}: ${gamemodes.get(sorted[i])} games${i == 4?'':' | '}`;
     }
     

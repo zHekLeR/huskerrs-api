@@ -741,7 +741,6 @@ app.get('/stats/:id', async (req, response) => {
 // Get user's stats.
 async function stats(username, platform) {
   try {
-    console.log(`${username}:${platform}`);
 
     // Get stats.
     let data = await lifetime(username, platform);
@@ -754,7 +753,7 @@ async function stats(username, platform) {
     let kills = data.lifetime.mode.br.properties.kills;
 
     // Return response.
-    return `${username.split('#')[0]} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
+    return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
 
   } catch (err) {
     console.log(`Stats: ${err}`);

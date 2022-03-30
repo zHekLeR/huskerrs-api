@@ -840,7 +840,7 @@ async function lastGames(username) {
     }
     
     // Return response.
-    return `Weekly Stats | ${mCache[username].length} Games | Kills/Game: ${mCache[username].length?(kGame/mCache[username].length).toFixed(2):'-'} | Deaths/Game: ${mCache[username].length?(dGame/mCache[username].length).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):'-'} | Wins: ${mCache[username].length?wins:'-'} | Longest Kill Streak: ${mCache[username].length?streak:'-'} | Gulag: ${mCache[username].length?String(gulag_kills) + '/' + String(gulag_deaths):'-'}`;
+    return `Weekly Stats | ${mCache[username].length} Games | Kills/Game: ${mCache[username].length?(kGame/mCache[username].length).toFixed(2):'-'} | Deaths/Game: ${mCache[username].length?(dGame/mCache[username].length).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):'-'} | Wins: ${mCache[username].length?wins:'-'} | Longest Kill Streak: ${mCache[username].length?streak:'-'} | Gulag: ${mCache[username].length?String(gulag_kills) + ' / ' + String(gulag_deaths):'-'}`;
 
   } catch (err) {
     console.log(`Weekly: ${err}`);
@@ -886,7 +886,7 @@ async function daily(username) {
     }
 
     // Return response.
-    return `Daily Stats | Games: ${dailyGames} | Kills/Game: ${dailyGames?(kGame/dailyGames).toFixed(2):'-'} | Deaths/Game: ${dailyGames?(dGame/dailyGames).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):kGame?kGame:'-'} | Wins: ${wins} | Longest Kill Streak: ${streak} | Gulag: ${gulag_kills} / ${gulag_deaths}`;
+    return `Daily Stats | Games: ${dailyGames} | Kills/Game: ${dailyGames?(kGame/dailyGames).toFixed(2):'-'} | Deaths/Game: ${dailyGames?(dGame/dailyGames).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):kGame?kGame:'-'} | Wins: ${wins} | Longest Kill Streak: ${streak} | Gulag: ${mCache[username].length?String(gulag_kills) + ' / ' + String(gulag_deaths):'-'}`;
 
   } catch (err) {
     console.log(`Daily: ${err}`);
@@ -920,7 +920,7 @@ async function bombs(username) {
     }
 
     // Return response.
-    return `HusKerrs has dropped ${bombs.length} bomb${bombs.length==1?'':'s'} (30+ kill games) today ${bombs.length?'('+bombs.join('K, ')+'K)':''}`;
+    return `${decodeURIComponent(username).split('#')} has dropped ${bombs.length} bomb${bombs.length==1?'':'s'} (30+ kill games) today ${bombs.length?'('+bombs.join('K, ')+'K)':''}`;
 
   } catch (err) {
     console.log(`Bombs: ${err}`);
@@ -954,7 +954,7 @@ async function wins(username) {
     }
 
     // Return response.
-    return `HusKerrs has won ${wins.length} game${wins.length==1?'':'s'} today ${wins.length?'(' + wins.join('K, ') + 'K)':''}`;
+    return `${decodeURIComponent(username).split('#')} has won ${wins.length} game${wins.length==1?'':'s'} today ${wins.length?'(' + wins.join('K, ') + 'K)':''}`;
 
   } catch (err) {
     console.log(`Wins: ${err}`);
@@ -993,7 +993,7 @@ async function gulag(username) {
     }
 
     // Return response.
-    return `HusKerrs has ${gulag_kills} win${gulag_kills==1?'':'s'} and ${gulag_deaths} loss${gulag_deaths==1?'':'es'} in the gulag today.`;
+    return `${decodeURIComponent(username).split('#')} has ${gulag_kills} win${gulag_kills==1?'':'s'} and ${gulag_deaths} loss${gulag_deaths==1?'':'es'} in the gulag today.`;
 
   } catch (err) {
     console.log(`Gulag: ${err}`);

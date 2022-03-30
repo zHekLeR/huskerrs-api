@@ -175,6 +175,22 @@ bot.on('message', async (channel, tags, message) => {
         bot.say(channel, await revolverroulette.allTimes(tags["display-name"]?tags["display-name"]:tags["username"]));
         break;
 
+      case '!coinon':
+        if (userIds[channel.substring(1)].coinflip || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET coinflip = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Coinflip enabled.`);
+        break;
+
+      case '!coinoff':
+        if (!userIds[channel.substring(1)].coinflip || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET coinflip = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Coinflip disabled.`);
+        break;
+
       case '!coin':
         if (!userIds[channel.substring(1)].coinflip) break;
         if (!tags["subscriber"]) break;
@@ -194,6 +210,22 @@ bot.on('message', async (channel, tags, message) => {
         bot.say(channel, await coinflip.coinflipLb());
         break;
 
+      case '!rpson':
+        if (userIds[channel.substring(1)].rps || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET rps = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Rock paper scissors enabled.`);
+        break;
+
+      case '!bigvanishoff':
+        if (!userIds[channel.substring(1)].rps || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET rps = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Rock paper scissors disabled.`);
+        break;
+
       case '!rps': 
       if (!userIds[channel.substring(1)].rps) break;
       if (!tags["subscriber"]) break;
@@ -211,6 +243,22 @@ bot.on('message', async (channel, tags, message) => {
       case '!rpslb':
         if (!userIds[channel.substring(1)].rps) break;
         bot.say(channel, await rps.rpsLb());
+        break;
+
+      case '!bigvanishon':
+        if (userIds[channel.substring(1)].bigvanish || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET bigvanish = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Bigvanish enabled.`);
+        break;
+
+      case '!bigvanishoff':
+        if (!userIds[channel.substring(1)].bigvanish || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET bigvanish = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Bigvanish disabled.`);
         break;
 
       case '!bigvanish':
@@ -350,6 +398,22 @@ bot.on('message', async (channel, tags, message) => {
         bot.say(channel, `Maps have been reset.`);
         break;
 
+      case '!matcheson':
+        if (userIds[channel.substring(1)].matches || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET matches = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Matches disabled.`);
+        break;
+
+      case '!matchesoff':
+        if (!userIds[channel.substring(1)].matches || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET matches = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        bot.say(channel, `Matches enabled.`);
+        break;
+
       case '!lastgame':
         if (!userIds[channel.substring(1)].matches) break;
         bot.say(channel, await lastGame(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
@@ -402,6 +466,13 @@ bot.on('message', async (channel, tags, message) => {
       case '!gamemodes':
         if (!userIds[channel.substring(1)].matches) break;
         bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        break;
+
+      case '!zhekleave':
+        if (tags["username"] !== channel.substring(1)) break;
+        let byebye = bot.channels.indexOf(channel.substring(1));
+        if (byebye >= 0) bot.channels = bot.splice(byebye, 1);
+        bot.part(channel);
         break;
 
     }
@@ -614,9 +685,11 @@ function lifetime(gamertag, platform = 'uno') {
 const app = express();
 
 
-// Home page - doesn't do shit.
+// Home page.
+import fs from 'fs';
 app.get('/', (request, response) => {
-  response.send('Welcome to HusKerrs API');
+  const homepage = fs.readFileSync("./page.html").toString('utf-8');
+  response.send(homepage);
 });
 
 

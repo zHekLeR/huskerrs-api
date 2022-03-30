@@ -171,7 +171,7 @@ bot.on('message', async (channel, tags, message) => {
         break;
 
       case '!gamestats':
-        if (!userIds[channel.substring(1)].coinflip || !userIds.rps || !userIds.revolverroulette) break;
+        if (!userIds[channel.substring(1)].coinflip || !userIds[channel.substring(1)].rps || !userIds[channel.substring(1)].revolverroulette) break;
         bot.say(channel, await revolverroulette.allTimes(tags["display-name"]?tags["display-name"]:tags["username"]));
         break;
 
@@ -180,6 +180,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET coinflip = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].coinflip = true;
         bot.say(channel, `Coinflip enabled.`);
         break;
 
@@ -188,6 +189,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET coinflip = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].coinflip = false;
         bot.say(channel, `Coinflip disabled.`);
         break;
 
@@ -215,6 +217,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET rps = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].rps = true;
         bot.say(channel, `Rock paper scissors enabled.`);
         break;
 
@@ -223,6 +226,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET rps = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].rps = false;
         bot.say(channel, `Rock paper scissors disabled.`);
         break;
 
@@ -250,6 +254,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET bigvanish = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].bigvanish = true;
         bot.say(channel, `Bigvanish enabled.`);
         break;
 
@@ -258,6 +263,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET bigvanish = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].bigvanish = false;
         bot.say(channel, `Bigvanish disabled.`);
         break;
 
@@ -403,6 +409,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET matches = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].matches = true;
         bot.say(channel, `Matches disabled.`);
         break;
 
@@ -411,6 +418,7 @@ bot.on('message', async (channel, tags, message) => {
         client = await pool.connect();
         await client.query(`UPDATE allusers SET matches = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
+        userIds[channel.substring(1)].matches = false;
         bot.say(channel, `Matches enabled.`);
         break;
 

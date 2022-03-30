@@ -681,7 +681,7 @@ function matchInfo(matchID) {
 
 
 // Pull lifetime stats from COD API.
-function lifetime(gamertag, platform = 'uno') {
+function lifetime(gamertag, platform) {
   return new Promise((resolve, reject) => {
     let urlInput = defaultBaseURL + `stats/cod/v1/title/mw/platform/${platform}/gamer/${gamertag}/profile/type/wz`;
     sendRequest(urlInput).then(data => resolve(data)).catch(e => reject(e));
@@ -739,8 +739,9 @@ app.get('/stats/:id', async (req, response) => {
 
 
 // Get user's stats.
-async function stats(username, platform = 'uno') {
+async function stats(username, platform) {
   try {
+    console.log(`${username}:${platform}`);
 
     // Get stats.
     let data = await lifetime(encodeURIComponent(username), platform);

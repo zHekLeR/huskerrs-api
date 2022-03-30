@@ -57,14 +57,14 @@ async function bigVanish(id) {
 
         // Pull users from the database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT user_id, vanish FROM bigvanish ORDER BY vanish DESC LIMIT 3;`);
+        let res = await client.query(`SELECT * FROM bigvanish ORDER BY vanish DESC LIMIT 3;`);
         let top = res.rows;
         client.release();
     
         // Format top users.
         let str = [];
         for (let i = 0; i < top.length; i++) {
-            str.push(`${top[i].user_id}: seconds`);
+            str.push(`${top[i].user_id}: ${top[i].vanish} seconds`);
         }
 
         // Return response.

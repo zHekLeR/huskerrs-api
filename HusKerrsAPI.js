@@ -920,7 +920,7 @@ async function bombs(username) {
     }
 
     // Return response.
-    return `${decodeURIComponent(username).split('#')} has dropped ${bombs.length} bomb${bombs.length==1?'':'s'} (30+ kill games) today ${bombs.length?'('+bombs.join('K, ')+'K)':''}`;
+    return `${decodeURIComponent(username).split('#')[0]} has dropped ${bombs.length} bomb${bombs.length==1?'':'s'} (30+ kill games) today ${bombs.length?'('+bombs.join('K, ')+'K)':''}`;
 
   } catch (err) {
     console.log(`Bombs: ${err}`);
@@ -954,7 +954,7 @@ async function wins(username) {
     }
 
     // Return response.
-    return `${decodeURIComponent(username).split('#')} has won ${wins.length} game${wins.length==1?'':'s'} today ${wins.length?'(' + wins.join('K, ') + 'K)':''}`;
+    return `${decodeURIComponent(username).split('#')[0]} has won ${wins.length} game${wins.length==1?'':'s'} today ${wins.length?'(' + wins.join('K, ') + 'K)':''}`;
 
   } catch (err) {
     console.log(`Wins: ${err}`);
@@ -993,7 +993,7 @@ async function gulag(username) {
     }
 
     // Return response.
-    return `${decodeURIComponent(username).split('#')} has ${gulag_kills} win${gulag_kills==1?'':'s'} and ${gulag_deaths} loss${gulag_deaths==1?'':'es'} in the gulag today.`;
+    return `${decodeURIComponent(username).split('#')[0]} has ${gulag_kills} win${gulag_kills==1?'':'s'} and ${gulag_deaths} loss${gulag_deaths==1?'':'es'} in the gulag today.`;
 
   } catch (err) {
     console.log(`Gulag: ${err}`);

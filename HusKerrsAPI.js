@@ -840,7 +840,7 @@ async function lastGames(username) {
     }
     
     // Return response.
-    return `Weekly Stats | ${mCache[username].length} Games | Kills/Game: ${mCache[username].length?(kGame/mCache.length).toFixed(2):'-'} | Deaths/Game: ${mCache[username].length?(dGame/mCache.length).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):'-'} | Wins: ${mCache[username].length?wins:'-'} | Longest Kill Streak: ${mCache[username].length?streak:'-'} | Gulag: ${mCache[username].length?String(gulag_kills) + '/' + String(gulag_deaths):'-'}`;
+    return `Weekly Stats | ${mCache[username].length} Games | Kills/Game: ${mCache[username].length?(kGame/mCache[username].length).toFixed(2):'-'} | Deaths/Game: ${mCache[username].length?(dGame/mCache[username].length).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):'-'} | Wins: ${mCache[username].length?wins:'-'} | Longest Kill Streak: ${mCache[username].length?streak:'-'} | Gulag: ${mCache[username].length?String(gulag_kills) + '/' + String(gulag_deaths):'-'}`;
 
   } catch (err) {
     console.log(`Weekly: ${err}`);

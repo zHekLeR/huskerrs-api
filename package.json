@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.25.0",
+    "browser-pool": "^3.1.1",
     "crypto": "^1.0.1",
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0",
@@ -22,6 +23,7 @@
     "fs": "^0.0.1-security",
     "luxon": "^2.3.0",
     "pg": "^8.7.3",
+    "playwright-firefox": "^1.20.1",
     "tmi.js": "^1.8.5",
     "uniqid": "^5.4.0"
   }

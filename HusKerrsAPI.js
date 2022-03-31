@@ -12,6 +12,8 @@ import axios from 'axios';
 // Twitch and Discord bots.
 import tmi from 'tmi.js';
 import { Client, Intents } from "discord.js";
+import { firefox } from 'playwright-firefox';
+import { BrowserPool, PlaywrightPlugin } from 'browser-pool';
 
 // Games,
 import * as wordle from './games/wordle.js';
@@ -31,6 +33,12 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false
   }
+});
+
+// Browser pool.
+const browserPool = new BrowserPool({
+  browserPlugins: [new PlaywrightPlugin(firefox)],
+  useFingerprints: true,
 });
 
 // Cooldowns for games.
@@ -105,7 +113,7 @@ bot.on('logon', () => {
 })
 
 // Check for commands and respond appropriately.
-bot.on('message', async (channel, tags, message) => {
+bot.on('chat', async (channel, tags, message) => {
   try {
 
     // Return if not a command.
@@ -476,6 +484,11 @@ bot.on('message', async (channel, tags, message) => {
         bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
         break;
 
+      case '!check':
+        if (!userIds[channel.substring(1)].matches || !tags["mod"]) break;
+        bot.say(channel, await check(encodeURIComponent(message.split(' ')[1])));
+        break;
+
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1)) break;
         let byebye = bot.channels.indexOf(channel.substring(1));
@@ -725,6 +738,28 @@ app.get('/brookescribers', async (request, response) => {
     response.send("Error during brookscribers");
   }
 });
+
+async function check(id) {
+  try {
+    const page = await browserPool.newPage({
+      proxy: {
+        server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
+        username: process.env.PROXY_USER,
+        password: process.env.PROXY_PASS
+      }
+    });
+
+    await page.goto('https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/HusKerrs');
+    let data = await page.content();
+    await page.close();
+
+    return data.data.segments[1].stats.kdRatio.displayValue;
+
+  } catch (err) {
+    console.log(err);
+    response.send(err);
+  }
+};
 
 
 // Get user's stats.

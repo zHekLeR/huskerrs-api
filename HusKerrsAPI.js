@@ -756,8 +756,8 @@ async function check(id) {
     return data.data.segments[1].stats.kdRatio.displayValue;
 
   } catch (err) {
-    console.log(err);
-    response.send(err);
+    console.log(`Check: ${err}`);
+    return;
   }
 };
 

@@ -37,7 +37,10 @@ const pool = new Pool({
 
 // Browser pool.
 const browserPool = new BrowserPool({
-  browserPlugins: [new PlaywrightPlugin(firefox)],
+  browserPlugins: [new PlaywrightPlugin(firefox, {
+    launchOptions: { headless: true },
+    proxyUrl: process.env.PROXY
+  })],
   useFingerprints: true,
 });
 
@@ -742,6 +745,7 @@ app.get('/brookescribers', async (request, response) => {
 async function check(id) {
   try {
     const page = await browserPool.newPage({
+      
       proxy: {
         server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
         username: process.env.PROXY_USER,
@@ -749,7 +753,7 @@ async function check(id) {
       }
     });
 
-    await page.goto('https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/HusKerrs');
+    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${req.params.id}`);
     let data = await page.content();
     await page.close();
 

@@ -1202,7 +1202,7 @@ app.get('/wordlelb', async (req, response) => {
 async function updateMatches() {
   try {
     let delay = 0;
-    Object.keys(userIds).forEach(async (key) => {
+    Object.keys(userIds).forEach(setTimeout(async (key) => {
       try {
 
         // Get time from a week ago and set base timestamp.
@@ -1229,19 +1229,18 @@ async function updateMatches() {
         }
         
         // Fetch last 20 matches for user from COD API.
-        let data;
-        setTimeout(async function () { data = await last20(userIds[key].acti_id, userIds[key].platform); }, delay);
-        delay += 5000;
+        let data = await last20(userIds[key].acti_id, userIds[key].platform);
 
         // Get stats for each match and push to database.
-        await update(data.matches, userIds[key], lastTimestamp);
+        await update(data.data.matches, userIds[key], lastTimestamp);
         console.log(`Updated matches for ${userIds[key].acti_id}.`);
       
+        delay += 5000;
       } catch (err) {
         console.log(`Updating matches: ${err}`);
         return; 
       }
-    });
+    }), delay);
 
   } catch (err) {
     console.log(`${err}: Error while updating matches for ${userIds[key].acti_id}.`);

@@ -40,6 +40,10 @@ const browserPool = new BrowserPool({
   browserPlugins: [new PlaywrightPlugin(firefox, {
     launchOptions: { 
       headless: true,
+      args : [
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+      ]
     },
     proxyUrl: process.env.PROXY
   })],
@@ -762,7 +766,7 @@ async function check(id) {
     let data = await page.content();
     await page.close();
 
-    return data;
+    return data.data.segments[1].stats.kdRatio.displayValue;
 
   } catch (err) {
     console.log(`Check: ${err}`);

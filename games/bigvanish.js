@@ -37,7 +37,7 @@ async function bigVanish(id) {
             } 
             
             if (rand < person.lowest) {
-                await client.query(`UPDATE bigvanish SET lowest = ${rand} WHERE user_id = ${id};`);
+                await client.query(`UPDATE bigvanish SET lowest = ${rand} WHERE user_id = '${id}';`);
                 person.lowest = rand;
             }
 

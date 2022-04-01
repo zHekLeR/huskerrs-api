@@ -1203,7 +1203,6 @@ async function updateMatches() {
   try {
     let delay = 0;
     for (let user of userIds) {
-      setTimeout(async () => {
       try {
 
         // Get time from a week ago and set base timestamp.
@@ -1232,15 +1231,16 @@ async function updateMatches() {
         // Fetch last 20 matches for user from COD API.
         let data = await last20(user.acti_id, user.platform);
 
+        await new Promise(resolve => setTimeout(resolve, delay += 5000));
+
         // Get stats for each match and push to database.
         await update(data.data.matches, user, lastTimestamp);
         console.log(`Updated matches for ${user.acti_id}.`);
       
-        delay += 5000;
       } catch (err) {
         console.log(`Updating matches: ${err}`);
         return; 
-      }}, delay);
+      }
     }
 
   } catch (err) {

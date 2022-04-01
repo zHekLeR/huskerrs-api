@@ -1236,7 +1236,8 @@ async function updateMatches() {
         }
         
         // Fetch last 20 matches for user from COD API.
-        let data = setTimeout(await last20(userIds[key].acti_id, userIds[key].platform), delay);
+        let data;
+        setTimeout(function () { data = await last20(userIds[key].acti_id, userIds[key].platform); }, delay);
         delay += 5000;
 
         // Get stats for each match and push to database.

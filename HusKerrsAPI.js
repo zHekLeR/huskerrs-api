@@ -298,6 +298,11 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, await bigvanish.bigVanishLb());
         break;
 
+      case '!bigvanishlow':
+        if (!userIds[channel.substring(1)].bigvanish) break;
+        bot.say(channel, await bigvanish.bigVanishLow());
+        break;
+
       case '!customon':
         if (userIds[channel.substring(1)].customs || !tags["mod"]) break;
         bot.say(channel, '!enable !score false');

@@ -15,7 +15,7 @@ async function bigVanish(id) {
 
         // Get value and construct response string.
         let rand = Math.floor(Math.random()*999000)+100;
-        let str = `/timeout ${id} ${rand} BIG Vanish! Random timeout between 100 and 1,000,000 seconds (if a mod doesn't remove it, DM zHekLeR). `;
+        let str = `/timeout ${id} ${rand} BIG Vanish! Random timeout between 100 and 1,000,000 seconds. `;
         
         // Pull user from database.
         let client = await pool.connect();
@@ -34,6 +34,9 @@ async function bigVanish(id) {
             if (rand > person.vanish) {
                 await client.query(`UPDATE bigvanish SET vanish = ${rand} WHERE user_id = '${id}';`);
                 person.vanish = rand;
+            } else if (rand < person.lowest) {
+                await client.query(`UPDATE bigvanish SET lowest = ${rand} WHERE user_id = ${id};`);
+                person.lowest = rand;
             }
 
         }
@@ -42,7 +45,7 @@ async function bigVanish(id) {
         client.release();
     
         // Return response.
-        return `${str}Your record is ${person.vanish} seconds!`;
+        return `${str}Your record high is ${person.vanish} seconds and low is ${person.lowest} seconds!`;
 
     } catch (err) {
         console.log(err);
@@ -76,4 +79,29 @@ async function bigVanish(id) {
   }
 
 
-  export { bigVanish, bigVanishLb };
+// Function to retrieve the lowest timeouts.
+async function bigVanishLow() {
+    try {
+
+        // Pull users from the database.
+        let client = await pool.connect();
+        let res = await client.query(`SELECT * FROM bigvanish ORDER BY vanish ASC LIMIT 3;`);
+        let top = res.rows;
+        client.release();
+    
+        // Format top users.
+        let str = [];
+        for (let i = 0; i < top.length; i++) {
+            str.push(`${top[i].user_id}: ${top[i].vanish} seconds`);
+        }
+
+        // Return response.
+        return `Big Vanish Lowest Leaderboard | ${str.length?str.join(' | '):'No users have played bigvanish yet'}`;
+    } catch (err) {
+        console.log(err);
+        return;
+    }
+}
+
+
+  export { bigVanish, bigVanishLb, bigVanishLow };

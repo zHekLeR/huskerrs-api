@@ -38,7 +38,9 @@ const pool = new Pool({
 // Browser pool.
 const browserPool = new BrowserPool({
   browserPlugins: [new PlaywrightPlugin(firefox, {
-    launchOptions: { headless: true },
+    launchOptions: { 
+      headless: true,
+    },
     proxyUrl: process.env.PROXY
   })],
   useFingerprints: true,
@@ -494,6 +496,7 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1)) break;
+        bot.say(channel, 'peepoLeave');
         let byebye = bot.channels.indexOf(channel.substring(1));
         if (byebye >= 0) bot.channels = bot.splice(byebye, 1);
         bot.part(channel);
@@ -742,22 +745,24 @@ app.get('/brookescribers', async (request, response) => {
   }
 });
 
+app.get('/check/:id', async (request, response) => {
+  try {
+    response.send(await check(request.params.id));
+  } catch (err) {
+    console.log(err);
+    response.send(err);
+  }
+})
+
 async function check(id) {
   try {
-    const page = await browserPool.newPage({
-      
-      proxy: {
-        server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
-        username: process.env.PROXY_USER,
-        password: process.env.PROXY_PASS
-      }
-    });
+    const page = await browserPool.newPage();
 
-    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${req.params.id}`);
+    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`);
     let data = await page.content();
     await page.close();
 
-    return data.data.segments[1].stats.kdRatio.displayValue;
+    return data;
 
   } catch (err) {
     console.log(`Check: ${err}`);

@@ -1202,11 +1202,11 @@ app.get('/wordlelb', async (req, response) => {
 async function updateMatches() {
   try {
     let delay = 0;
-    for (let user of userIds) {
+    Object.keys().forEach( async (key) => {
       try {
 
         // Get time from a week ago and set base timestamp.
-        console.log("Updating matches for " + user.acti_id);
+        console.log("Updating matches for " + userIds[key].acti_id);
         let weekAgo = DateTime.now().setZone('America/Denver').minus({weeks:1})/1000;
         let lastTimestamp = 0;
         
@@ -1215,33 +1215,33 @@ async function updateMatches() {
         await client.query(`DELETE FROM matches WHERE timestamp < ${weekAgo};`);
         
         // If match cache for this user is empty, set it.
-        if (!mCache[user.acti_id].length) {
-          let res = await client.query(`SELECT * FROM matches WHERE user_id = '${user.acti_id}';`);
-          mCache[user.acti_id] = res.rows;
+        if (!mCache[userIds[key].acti_id].length) {
+          let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}';`);
+          mCache[userIds[key].acti_id] = res.rows;
         }
         
         // Release client.
         client.release();
         
         // Update timestamp of last match.
-        for (let i = 0; i < mCache[user.acti_id].length; i++) {
-          lastTimestamp = mCache[user.acti_id][i].timestamp > lastTimestamp?mCache[user.acti_id][i].timestamp:lastTimestamp;
+        for (let i = 0; i < mCache[userIds[key].acti_id].length; i++) {
+          lastTimestamp = mCache[userIds[key].acti_id][i].timestamp > lastTimestamp?mCache[userIds[key].acti_id][i].timestamp:lastTimestamp;
         }
         
         // Fetch last 20 matches for user from COD API.
-        let data = await last20(user.acti_id, user.platform);
+        let data = await last20(userIds[key].acti_id, user.platform);
 
         await new Promise(resolve => setTimeout(resolve, delay += 5000));
 
         // Get stats for each match and push to database.
-        await update(data.data.matches, user, lastTimestamp);
-        console.log(`Updated matches for ${user.acti_id}.`);
+        await update(data.data.matches, userIds[key], lastTimestamp);
+        console.log(`Updated matches for ${userIds[key].acti_id}.`);
       
       } catch (err) {
         console.log(`Updating matches: ${err}`);
         return; 
       }
-    }
+    });
 
   } catch (err) {
     console.log(`${err}: Error while updating matches for ${user.acti_id}.`);

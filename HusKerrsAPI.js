@@ -1244,7 +1244,7 @@ async function updateMatches() {
     });
 
   } catch (err) {
-    console.log(`${err}: Error while updating matches for ${user.acti_id}.`);
+    console.log(`${err}: Error while updating matches for ${userIds[key].acti_id}.`);
   }
 };
 

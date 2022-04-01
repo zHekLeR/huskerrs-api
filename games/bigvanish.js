@@ -85,7 +85,7 @@ async function bigVanishLow() {
 
         // Pull users from the database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT * FROM bigvanish ORDER BY vanish ASC LIMIT 3;`);
+        let res = await client.query(`SELECT * FROM bigvanish ORDER BY lowest ASC LIMIT 3;`);
         let top = res.rows;
         client.release();
     

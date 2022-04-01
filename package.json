@@ -23,7 +23,7 @@
     "fs": "^0.0.1-security",
     "luxon": "^2.3.0",
     "pg": "^8.7.3",
-    "playwright-firefox": "^1.21.0-alpha-mar-31-2022",
+    "playwright-firefox": "^1.21.0-alpha-apr-1-2022",
     "tmi.js": "^1.8.5",
     "uniqid": "^5.4.0"
   }

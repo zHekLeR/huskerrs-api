@@ -34,7 +34,9 @@ async function bigVanish(id) {
             if (rand > person.vanish) {
                 await client.query(`UPDATE bigvanish SET vanish = ${rand} WHERE user_id = '${id}';`);
                 person.vanish = rand;
-            } else if (rand < person.lowest) {
+            } 
+            
+            if (rand < person.lowest) {
                 await client.query(`UPDATE bigvanish SET lowest = ${rand} WHERE user_id = ${id};`);
                 person.lowest = rand;
             }
@@ -92,7 +94,8 @@ async function bigVanishLow() {
         // Format top users.
         let str = [];
         for (let i = 0; i < top.length; i++) {
-            str.push(`${top[i].user_id}: ${top[i].vanish} seconds`);
+            if (top[i].lowest === 1000000) continue;
+            str.push(`${top[i].user_id}: ${top[i].lowest} seconds`);
         }
 
         // Return response.

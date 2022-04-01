@@ -1208,8 +1208,10 @@ app.get('/wordlelb', async (req, response) => {
 // Randomly pull matches from codtracker between every 5-10 minutes and store in database.
 async function updateMatches() {
   try {
+    let delay = 0;
     Object.keys(userIds).forEach(async (key) => {
       try {
+
         // Get time from a week ago and set base timestamp.
         console.log("Updating matches for " + userIds[key].acti_id);
         let weekAgo = DateTime.now().setZone('America/Denver').minus({weeks:1})/1000;
@@ -1234,7 +1236,8 @@ async function updateMatches() {
         }
         
         // Fetch last 20 matches for user from COD API.
-        let data = await last20(userIds[key].acti_id, userIds[key].platform);
+        let data = setTimeout(await last20(userIds[key].acti_id, userIds[key].platform), delay);
+        delay += 5000;
 
         // Get stats for each match and push to database.
         await update(data.matches, userIds[key], lastTimestamp);

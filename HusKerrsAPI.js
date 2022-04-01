@@ -1201,42 +1201,44 @@ app.get('/wordlelb', async (req, response) => {
 // Pull matches from codtracker between every 5 and store in database.
 async function updateMatches() {
   try {
-    Object.keys(userIds).forEach(async (key) => {
-      try {
-        // Get time from a week ago and set base timestamp.
-        console.log("Updating matches for " + userIds[key].acti_id);
-        let weekAgo = DateTime.now().setZone('America/Denver').minus({weeks:1})/1000;
-        let lastTimestamp = 0;
-        
-        // Clear matches which are older than a week.
-        let client = await pool.connect();
-        await client.query(`DELETE FROM matches WHERE timestamp < ${weekAgo};`);
-        
-        // If match cache for this user is empty, set it.
-        if (!mCache[userIds[key].acti_id].length) {
-          let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}';`);
-          mCache[userIds[key].acti_id] = res.rows;
-        }
-        
-        // Release client.
-        client.release();
-        
-        // Update timestamp of last match.
-        for (let i = 0; i < mCache[userIds[key].acti_id].length; i++) {
-          lastTimestamp = mCache[userIds[key].acti_id][i].timestamp > lastTimestamp?mCache[userIds[key].acti_id][i].timestamp:lastTimestamp;
-        }
-        
-        // Fetch last 20 matches for user from COD API.
-        let data = await last20(userIds[key].acti_id, userIds[key].platform);
+    Object.keys(userIds).forEach((key, i) => {
+      setTimeout(async () => {
+        try {
+          // Get time from a week ago and set base timestamp.
+          console.log("Updating matches for " + userIds[key].acti_id);
+          let weekAgo = DateTime.now().setZone('America/Denver').minus({weeks:1})/1000;
+          let lastTimestamp = 0;
+          
+          // Clear matches which are older than a week.
+          let client = await pool.connect();
+          await client.query(`DELETE FROM matches WHERE timestamp < ${weekAgo};`);
+          
+          // If match cache for this user is empty, set it.
+          if (!mCache[userIds[key].acti_id].length) {
+            let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}';`);
+            mCache[userIds[key].acti_id] = res.rows;
+          }
+          
+          // Release client.
+          client.release();
+          
+          // Update timestamp of last match.
+          for (let i = 0; i < mCache[userIds[key].acti_id].length; i++) {
+            lastTimestamp = mCache[userIds[key].acti_id][i].timestamp > lastTimestamp?mCache[userIds[key].acti_id][i].timestamp:lastTimestamp;
+          }
+          
+          // Fetch last 20 matches for user from COD API.
+          let data = await last20(userIds[key].acti_id, userIds[key].platform);
 
-        // Get stats for each match and push to database.
-        await update(data.matches, userIds[key], lastTimestamp);
-        console.log(`Updated matches for ${userIds[key].acti_id}.`);
-      
-      } catch (err) {
-        console.log(`Updating matches: ${err}`);
-        return; 
-      }
+          // Get stats for each match and push to database.
+          await update(data.matches, userIds[key], lastTimestamp);
+          console.log(`Updated matches for ${userIds[key].acti_id}.`);
+        
+        } catch (err) {
+          console.log(`Updating matches: ${err}`);
+          return; 
+        }
+      }, i*5000);
     });
 
   } catch (err) {

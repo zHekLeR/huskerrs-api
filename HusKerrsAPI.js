@@ -1229,7 +1229,7 @@ async function updateMatches() {
         }
         
         // Fetch last 20 matches for user from COD API.
-        let data = await last20(userIds[key].acti_id, user.platform);
+        let data = await last20(userIds[key].acti_id, userIds[key].platform);
 
         await new Promise(resolve => setTimeout(resolve, delay += 5000));
 

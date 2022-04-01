@@ -1202,7 +1202,7 @@ app.get('/wordlelb', async (req, response) => {
 async function updateMatches() {
   try {
     let delay = 0;
-    Object.keys().forEach( async (key) => {
+    Object.keys(userIds).forEach( async (key) => {
       try {
 
         // Get time from a week ago and set base timestamp.

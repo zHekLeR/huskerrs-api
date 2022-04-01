@@ -1238,7 +1238,7 @@ async function updateMatches() {
           console.log(`Updating matches: ${err}`);
           return; 
         }
-      }, i*5000);
+      }, i*10000);
     });
 
   } catch (err) {

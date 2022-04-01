@@ -38,13 +38,6 @@ const pool = new Pool({
 // Browser pool.
 const browserPool = new BrowserPool({
   browserPlugins: [new PlaywrightPlugin(firefox, {
-    launchOptions: { 
-      headless: true,
-      args : [
-        '--no-sandbox',
-        '--disable-setuid-sandbox'
-      ]
-    },
     proxyUrl: process.env.PROXY
   })],
   useFingerprints: true,

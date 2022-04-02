@@ -139,9 +139,6 @@ bot.on('chat', async (channel, tags, message) => {
     if (gcd[short] && gcd[short] > Date.now()) return;
     gcd[short] = Date.now() + 3000;
 
-    // Sub/pleb cooldown.
-    let pleb = { rr: { }, rps: { }, cf: { } };
-
     // Base values.
     let client, res, placement, kills, multis, score, str;
 
@@ -167,14 +164,9 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!rr': 
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        if (!tags["subscruber"]) {
-          if (!pleb.rr[tags["username"]]) pleb.rr["username"] = Date.now() + 60000;
-          else if (pleb.rr[tags["username"] > Date.now()]) return;
-          else Date.now() + 60000;
-        } 
         if (!rrcd[tags["username"]] || rrcd[tags["username"]] < Date.now()) {
           bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"]));
-          rrcd[tags["username"]] = Date.now() + 15000;
+          rrcd[tags["username"]] = Date.now() + 60000;
         }
         break;
 

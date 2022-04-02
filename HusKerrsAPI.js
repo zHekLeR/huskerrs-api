@@ -1439,6 +1439,7 @@ async function brookescribers() {
         try {
           // Pull most recent follower from database.
           let client = await pool.connect();
+          await client.query(`DELETE FROM brookescribers WHERE created_at < ${sixAgo};`);
           let fRes = await client.query(`SELECT user_id FROM brookescribers;`);
           let fLast = []
           for (let i = 0; i < fRes.rows.length; i++) fLast.push(fRes.rows[i].user_id);

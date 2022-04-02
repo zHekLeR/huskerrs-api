@@ -137,7 +137,10 @@ bot.on('chat', async (channel, tags, message) => {
 
     // Check/set global cooldown on command.
     if (gcd[short] && gcd[short] > Date.now()) return;
-    gcd[short] = Date.now() + 1000;
+    gcd[short] = Date.now() + 3000;
+
+    // Sub/pleb cooldown.
+    let pleb = { rr: { }, rps: { }, cf: { } };
 
     // Base values.
     let client, res, placement, kills, multis, score, str;
@@ -154,17 +157,20 @@ bot.on('chat', async (channel, tags, message) => {
         break;
 
       case '!rroff': 
-      if (!userIds[channel.substring(1)].revolverroulette || !tags["mod"]) break;
-      client = await pool.connect();
-      await client.query(`UPDATE allusers SET revolverroulette = false WHERE user_id = '${channel.substring(1)}';`)
-      client.release();
-      userIds[channel.substring(1)].revolverroulette = false;
-      bot.say(channel, `Revolver Roulette has been disabled.`);
-      break;
+        if (!userIds[channel.substring(1)].revolverroulette || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET revolverroulette = false WHERE user_id = '${channel.substring(1)}';`)
+        client.release();
+        userIds[channel.substring(1)].revolverroulette = false;
+        bot.say(channel, `Revolver Roulette has been disabled.`);
+        break;
 
       case '!rr': 
-      if (!userIds[channel.substring(1)].revolverroulette) break;
-      if (!tags["subscriber"]) break;
+        if (!userIds[channel.substring(1)].revolverroulette) break;
+        if (!tags["subscruber"]) {
+          if (!pleb.rr[tags["username"]]) pleb.rr["username"] = Date.now() + 60000;
+          else (pleb.rr[tags["username"]]) = Date.now() + 60000;
+        } 
         if (!rrcd[tags["username"]] || rrcd[tags["username"]] < Date.now()) {
           bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"]));
           rrcd[tags["username"]] = Date.now() + 15000;
@@ -1241,7 +1247,11 @@ async function updateMatches() {
           // Fetch last 20 matches for user from COD API.
           let data;
           try { data = await last20(userIds[key].acti_id, userIds[key].platform); }
-          catch (err) { setTimeout(async () => { console.log(`Error: ${userIds[key].acti_id}, retrying.`); data = await last20(userIds[key].acti_id, userIds[key].platform); }, 3000); }
+          catch (err) { setTimeout(async () => { 
+            try { 
+              console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
+              data = await last20(userIds[key].acti_id, userIds[key].platform); } 
+            catch (err) { console.log(`Error during retry.`) } }, 3000); }
 
           // Get stats for each match and push to database.
           await update(data.matches, userIds[key], lastTimestamp);

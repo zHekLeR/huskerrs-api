@@ -169,7 +169,8 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].revolverroulette) break;
         if (!tags["subscruber"]) {
           if (!pleb.rr[tags["username"]]) pleb.rr["username"] = Date.now() + 60000;
-          else (pleb.rr[tags["username"]]) = Date.now() + 60000;
+          else if (pleb.rr[tags["username"] > Date.now()]) return;
+          else Date.now() + 60000;
         } 
         if (!rrcd[tags["username"]] || rrcd[tags["username"]] < Date.now()) {
           bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"]));

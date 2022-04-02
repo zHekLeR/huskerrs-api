@@ -38,7 +38,18 @@ const pool = new Pool({
 // Browser pool.
 const browserPool = new BrowserPool({
   browserPlugins: [new PlaywrightPlugin(firefox, {
-    proxyUrl: process.env.PROXY
+    launchOptions: {
+      headless: true,
+      proxy: {
+        server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
+        username: process.env.PROXY_USER,
+        password: process.env.PROXY_PASS
+      },
+      'args' : [
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+      ]
+    },
   })],
   useFingerprints: true,
 });
@@ -764,7 +775,7 @@ async function check(id) {
     let data = await page.content();
     await page.close();
 
-    return data.data.segments[1].stats.kdRatio.displayValue;
+    return data.substring(0, 30);
 
   } catch (err) {
     console.log(`Check: ${err}`);

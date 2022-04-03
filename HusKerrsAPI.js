@@ -836,7 +836,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     // Find user's team name.
     let teamName;
     for (let j = 0; j < players.length; j++) {
-      if (players[j].player.uno === userIds[req.params.userid].uno_id) {
+      if (players[j].player.uno === String(userIds[req.params.userid].uno_id)) {
         teamName = players[j].player.team;
         timestamp = players[j].utcStartSeconds;
         placement = players[j].playerStats.teamPlacement;
@@ -853,7 +853,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     // Teammates?
     let teammates = [];
     for (let j = 0; j < players.length; j++) {
-      if (players[j].player.team === teamName && players[j].player.uno !== userIds[req.params.userid].uno_id) {
+      if (players[j].player.team === teamName && players[j].player.uno !== String(userIds[req.params.userid].uno_id)) {
         let player = { name: players[j].player.username, kills: players[j].playerStats.kills, deaths: players[j].playerStats.deaths };
         teammates.push(player);
         if (teammates.length == 3) break;
@@ -889,9 +889,9 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
       'teammates': teammates,
     };
 
-    mCache[req.params.userid].push(body);
+    mCache[userIds[req.params.userid].acti_id].push(body);
 
-    addStr = `(${timestamp}, '${match_id}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, 0, ${lobby_kd}, '${game_mode}', '${teammates}'::json, ${req.params.id})`;
+    addStr = `(${timestamp}, '${parseInt(req.params.matchid)}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${req.params.id}')`;
 
     let client = await pool.connect();
     await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);

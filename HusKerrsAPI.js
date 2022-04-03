@@ -891,7 +891,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
 
     mCache[userIds[req.params.userid].acti_id].push(body);
 
-    addStr = `(${timestamp}, '${parseInt(req.params.matchid)}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${req.params.id}')`;
+    addStr = `(${timestamp}, '${req.params.matchid}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${req.params.id}')`;
 
     let client = await pool.connect();
     await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);
@@ -1304,7 +1304,7 @@ async function updateMatches() {
         try {
           // Get time from a week ago and set base timestamp.
           console.log("Updating matches for " + userIds[key].acti_id);
-          let weekAgo = DateTime.now().setZone('America/Denver').minus({weeks:1})/1000;
+          let weekAgo = DateTime.now().minus({weeks:1})/1000;
           let lastTimestamp = 0;
           
           // Clear matches which are older than a week.

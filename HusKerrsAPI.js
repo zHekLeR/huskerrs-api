@@ -853,7 +853,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     // Teammates?
     let teammates = [];
     for (let j = 0; j < players.length; j++) {
-      if (players[j].player.team === teamName && players[j].player.uno !== req.params.userid.uno_id) {
+      if (players[j].player.team === teamName && players[j].player.uno !== userIds[req.params.userid].uno_id) {
         let player = { name: players[j].player.username, kills: players[j].playerStats.kills, deaths: players[j].playerStats.deaths };
         teammates.push(player);
         if (teammates.length == 3) break;

@@ -861,7 +861,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     }
 
     // Format placement.
-      placement = String(matches[i].playerStats.teamPlacement);
+      placement = String(placement);
       if (!placement) {
         placement = "-";
       } else {
@@ -891,7 +891,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
 
     mCache[req.params.userid].push(body);
 
-    addStr = `(${timestamp}, '${match_id}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, 0, ${lobby_kd}, '${game_mode}', '${teammates}'::json)`;
+    addStr = `(${timestamp}, '${match_id}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, 0, ${lobby_kd}, '${game_mode}', '${teammates}'::json, ${req.params.id})`;
 
     let client = await pool.connect();
     await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);

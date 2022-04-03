@@ -542,9 +542,9 @@ let game_modes = {
   'br_brduos': 'Battle Royale Duos',
   'br_brsolos': 'Battle Royale Solos',
   'br_vg_royale_quads': 'Vanguard Royale Quads',
-  'br_vg_royale_trios': 'Vanguard Royale Trios',
-  'br_vg_royale_duos': 'Vanguard Royale Duos',
-  'br_vg_royale_solos': 'Vanguard Royale Solos',
+  'br_vg_royale_trio': 'Vanguard Royale Trios',
+  'br_vg_royale_duo': 'Vanguard Royale Duos',
+  'br_vg_royale_solo': 'Vanguard Royale Solos',
   'br_dmz_plunquad': 'Plunder Quads',
   'br_dmz_pluntrio': 'Plunder Trios',
   'br_dmz_plunduo': 'Plunder Duos',
@@ -826,6 +826,9 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     // Get all players for this match.
     let players = (await matchInfo(req.params.matchid)).allPlayers;
 
+    // String to add.
+    let addStr = [];
+
     // Get timestamp.
     let timestamp, placement, kills, deaths, gulag_kills, gulag_deaths, streak, game_mode;
     let lobby_kd = 0;
@@ -874,7 +877,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     // Create JSON object to add to cache.
     let body = { 
       'timestamp': timestamp,
-      'match_id': match_id,
+      'match_id': req.params.matchid,
       'placement': placement,
       'kills': kills,
       'deaths': deaths,
@@ -887,6 +890,12 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     };
 
     mCache[req.params.userid].push(body);
+
+    addStr = `(${timestamp}, '${match_id}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, 0, ${lobby_kd}, '${game_mode}', '${teammates}'::json)`;
+
+    let client = await pool.connect();
+    await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);
+    client.release();
 
     response.send(`Match ${req.params.matchid} updated.`);
   } catch (err) {

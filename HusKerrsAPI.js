@@ -1428,7 +1428,7 @@ async function update(matches, user, lastTimestamp) {
       }
 
       // Replace longest streak?
-      streak = matches[i].playerStats.longestStreak > streak?matches[i].playerStats.longestStreak:streak;
+      streak = matches[i].playerStats.longestStreak;
 
       // Create JSON object to add to cache.
       let body = { 

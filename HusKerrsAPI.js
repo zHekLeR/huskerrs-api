@@ -1389,17 +1389,19 @@ async function update(matches, user, lastTimestamp) {
       kills = matches[i].playerStats.kills;
       deaths = matches[i].playerStats.deaths;
       
+      // Set game mode.
+      game_mode = game_modes[matches[i].mode];
+
       // Set gulag stats.
       gulag_kills = 0;
       gulag_deaths = 0;
-      if (matches[i].playerStats.gulagKills) {
-        gulag_kills++;
-      } else if (matches[i].playerStats.gulagDeaths) {
-        gulag_deaths++;
+      if (!game_mode.includes('Resurgence') && !game_mode.includes('Rebirth')) {
+        if (matches[i].playerStats.gulagKills) {
+          gulag_kills++;
+        } else if (matches[i].playerStats.gulagDeaths) {
+          gulag_deaths++;
+        }
       }
-      
-      // Set game mode.
-      game_mode = game_modes[matches[i].mode];
       
       // Get all players for this match.
       let players = (await matchInfo(match_id)).allPlayers;
@@ -1592,6 +1594,8 @@ async function brookescribers() {
 
     // Connect to database.
     let client = await pool.connect();
+
+    await client.query(`UPDATE matches SET user_id = 'UnRationaL%231087071' WHERE user_id = 'UnRationaL%231087081';`)
 
     // Log into the COD API.
     await loginWithSSO(process.env.COD_SSO);

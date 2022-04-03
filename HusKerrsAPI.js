@@ -1357,7 +1357,9 @@ async function update(matches, user, lastTimestamp) {
   try {
 
     // Declarations and base values.
-    let timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, lobby_kd, game_mode;
+    let timestamp, match_id, placement, kills, deaths, lobby_kd, game_mode;
+    let gulag_kills = 0;
+    let gulag_deaths = 0;
     let streak = 0;
     let addStr = [];
 
@@ -1397,9 +1399,9 @@ async function update(matches, user, lastTimestamp) {
       gulag_deaths = 0;
       if (!game_mode.includes('Resurgence') && !game_mode.includes('Rebirth')) {
         if (matches[i].playerStats.gulagKills) {
-          gulag_kills++;
+          gulag_kills = 1;
         } else if (matches[i].playerStats.gulagDeaths) {
-          gulag_deaths++;
+          gulag_deaths = 1;
         }
       }
       

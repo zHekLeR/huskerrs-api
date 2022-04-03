@@ -793,7 +793,7 @@ app.get('/stats/:id', async (req, response) => {
     console.log(`Error while getting other stats: ${err}`);
     response.send(`Error while getting stats.`)
   }
-})
+});
 
 
 // Get user's stats.
@@ -817,7 +817,84 @@ async function stats(username, platform) {
     console.log(`Stats: ${err}`);
     return;
   }
-}
+};
+
+
+// Add specific match to database.
+app.get('/addmatch/:matchid/:userid', async (req, response) => {
+  try {
+    // Get all players for this match.
+    let players = (await matchInfo(req.params.matchid)).allPlayers;
+
+    // Get timestamp.
+    let timestamp, placement, kills, deaths, gulag_kills, gulag_deaths, streak, game_mode;
+    let lobby_kd = 0;
+
+    // Find user's team name.
+    let teamName;
+    for (let j = 0; j < players.length; j++) {
+      if (players[j].player.uno === userIds[req.params.userid].uno_id) {
+        teamName = players[j].player.team;
+        timestamp = players[j].utcStartSeconds;
+        placement = players[j].playerStats.teamPlacement;
+        kills = players[j].playerStats.kills;
+        deaths = players[j].playerStats.deaths;
+        gulag_kills = players[j].playerStats.gulagKills;
+        gulag_deaths = players[j].playerStats.gulagDeaths;
+        streak = players[j].playerStats.longestStreak;
+        game_mode = players[j].mode;
+        break;
+      }
+    }
+    
+    // Teammates?
+    let teammates = [];
+    for (let j = 0; j < players.length; j++) {
+      if (players[j].player.team === teamName && players[j].player.uno !== user.uno_id) {
+        let player = { name: players[j].player.username, kills: players[j].playerStats.kills, deaths: players[j].playerStats.deaths };
+        teammates.push(player);
+        if (teammates.length == 3) break;
+      }
+    }
+
+    // Format placement.
+      placement = String(matches[i].playerStats.teamPlacement);
+      if (!placement) {
+        placement = "-";
+      } else {
+        placement = placement.length==3?placement.substring(0, 1):placement.substring(0,2);
+        if (placement.length == 2 && placement.charAt(0) == '1') {
+          placement += 'th';
+        } else {
+          placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)===2?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';
+        }
+      }
+      if (placement.includes('undefined')) placement = "-";
+
+    // Create JSON object to add to cache.
+    let body = { 
+      'timestamp': timestamp,
+      'match_id': match_id,
+      'placement': placement,
+      'kills': kills,
+      'deaths': deaths,
+      'gulag_kills': gulag_kills,
+      'gulag_deaths': gulag_deaths,
+      'streak': streak,
+      'lobby_kd': lobby_kd,
+      'game_mode': game_mode,
+      'teammates': teammates,
+    };
+
+    mCache[req.params.userid].push(body);
+
+    response.send(`Match ${req.params.matchid} updated.`);
+  } catch (err) {
+    console.log(`Add match error: ${err}`);
+    response.send(`Add match error.`);
+  }
+});
+
 
 
 // Get user's last match info.
@@ -864,7 +941,7 @@ async function lastGame(username) {
     console.log(`Last Game: ${err}`);
     return;
   }
-}
+};
 
 
 // Get user's weekly stats.
@@ -904,7 +981,7 @@ async function lastGames(username) {
     console.log(`Weekly: ${err}`);
     return;
   }
-}
+};
 
 
 // Get the user's daily stats.
@@ -950,7 +1027,7 @@ async function daily(username) {
     console.log(`Daily: ${err}`);
     return;
   }
-}
+};
 
 
 // Get the user's 'bombs' for the day (30+ kill games).
@@ -984,7 +1061,7 @@ async function bombs(username) {
     console.log(`Bombs: ${err}`);
     return;
   }
-}
+};
 
 
 // Get the user's wins for the day.
@@ -1018,7 +1095,7 @@ async function wins(username) {
     console.log(`Wins: ${err}`);
     return;
   }
-}
+};
 
 
 // Get user's gulag stats for the day.
@@ -1057,7 +1134,7 @@ async function gulag(username) {
     console.log(`Gulag: ${err}`);
     return;
   }
-}
+};
 
 
 // Function to get user's frequent teammates.
@@ -1094,7 +1171,7 @@ async function teammates(username) {
     console.log(`Teammates: ${err}`);
     return;
   }
-}
+};
 
 
 // Function to get user's frequent teammates.
@@ -1128,7 +1205,7 @@ async function gamemodes(username) {
     console.log(`Game Modes: ${err}`);
     return;
   }
-}
+};
 
 
 // Pull number of semtex kills from COD API - only for HusK currently.
@@ -1141,7 +1218,7 @@ async function semtex() {
     console.log(`Semtex: ${err}`);
     return;
   }
-}
+};
 
 
 // Wordle!
@@ -1247,7 +1324,7 @@ async function updateMatches() {
               console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
               data = await last20(userIds[key].acti_id, userIds[key].platform); } 
             catch (err) { console.log(`Error during retry.`) } 
-          }, 3000); }
+          }, 20000); }
 
           // Get stats for each match and push to database.
           await update(data.matches, userIds[key], lastTimestamp);

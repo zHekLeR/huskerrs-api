@@ -523,12 +523,14 @@ bot.on('chat', async (channel, tags, message) => {
 
 // Twitch bot subscription handler.
 bot.on('subscription', (channel, username, method, message, userstate) => {
+  if (!userIds[channel.substring(1)].subs) return;
   bot.say(channel, `${username} Thank you for the sub, welcome to the Huskies huskHype huskLove`);
 });
 
 
 // Twitch bot resubscription handler.
 bot.on('resub', (channel, username, months, message, userstate, methods) => {
+  if (!userIds[channel.substring(1)].subs) return;
   bot.say(channel, `${username} Thank you for the ${userstate['msg-param-cumulative-months']} month resub huskHype huskLove`);
 });
 
@@ -1244,7 +1246,8 @@ async function updateMatches() {
             try { 
               console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
               data = await last20(userIds[key].acti_id, userIds[key].platform); } 
-            catch (err) { console.log(`Error during retry.`) } }, 3000); }
+            catch (err) { console.log(`Error during retry.`) } 
+          }, 3000); }
 
           // Get stats for each match and push to database.
           await update(data.matches, userIds[key], lastTimestamp);

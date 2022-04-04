@@ -1353,10 +1353,10 @@ async function updateMatches() {
           }
           catch (err) { setTimeout(async () => { 
             try { 
-              console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
+              console.log(`Error: ${userIds[key].acti_id}, retrying: ${err}`); 
               data = await last20(userIds[key].acti_id, userIds[key].platform); 
               await update(data.matches, userIds[key], lastTimestamp); } 
-            catch (err) { console.log(`Error during retry.`) } 
+            catch (err) { console.log(`Error during retry: ${err}`) } 
           }, 20000); }
 
           // Get stats for each match and push to database.

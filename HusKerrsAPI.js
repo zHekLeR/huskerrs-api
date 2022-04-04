@@ -568,10 +568,10 @@ let game_modes = {
   'br_rebirth_rbrthtrio': 'Resurgence Trios',
   'br_rebirth_rbrthduo': 'Resurgence Duos',
   'br_rebirth_rbrthsolo': 'Resurgence Solos',
-  'br_rebirth_reverse_playlist_wz325/rbrthsolos': 'Resurgence Solos',
-  'br_rebirth_reverse_playlist_wz325/rbrthduos': 'Resurgence Duos',
-  'br_rebirth_reverse_playlist_wz325/rbrthtrios': 'Resurgence Trios',
-  'br_rebirth_reverse_playlist_wz325/rbrthquads': 'Resurgence Quads',
+  'br_rebirth_reverse_playlist_wz325/rbrthsolos': 'Rebirth Reverse',
+  'br_rebirth_reverse_playlist_wz325/rbrthduos': 'Rebirth Reverse',
+  'br_rebirth_reverse_playlist_wz325/rbrthtrios': 'Rebirth Reverse',
+  'br_rebirth_reverse_playlist_wz325/rbrthquads': 'Rebirth Reverse',
   'br_rumble_clash_caldera': 'Clash'
 };
 
@@ -1363,7 +1363,7 @@ async function updateMatches() {
               console.log(`Error: ${userIds[key].acti_id}, retrying: ${err}`); 
               data = await last20(userIds[key].acti_id, userIds[key].platform); 
               await update(data.matches, userIds[key], lastTimestamp); 
-              
+
               // Get stats for each match and push to database.
               console.log(`Updated matches for ${userIds[key].acti_id}.`);
             } 

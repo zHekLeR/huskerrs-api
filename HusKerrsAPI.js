@@ -582,11 +582,14 @@ let mCache = {};
 
 let apiAxios = axios.create({
   headers: {
-          "content-type": "application/json",
-          "cookie": baseCookie,
-          "x-requested-with": process.env.USER_AGENT,
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-          "Connection": "keep-alive"
+    // @ts-ignore
+    common: {
+      "content-type": "application/json",
+      "cookie": baseCookie,
+      "x-requested-with": process.env.USER_AGENT,
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+      "Connection": "keep-alive"
+    }
   },
   withCredentials: true
 });

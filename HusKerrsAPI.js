@@ -564,7 +564,7 @@ let game_modes = {
   'br_buy_back_trios': 'Buyback Trios',
   'br_buy_back_duos': 'Buyback Duos',
   'br_buy_back_solos': 'Buyback Solos',
-  'br_rebirth_rbrthquads': 'Resurgence Quads',
+  'br_rebirth_rbrthquad': 'Resurgence Quads',
   'br_rebirth_rbrthtrios': 'Resurgence Trios',
   'br_rebirth_rbrthduos': 'Resurgence Duos',
   'br_rebirth_rbrthsolos': 'Resurgence Solos',

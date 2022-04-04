@@ -1327,16 +1327,18 @@ async function updateMatches() {
           
           // Fetch last 20 matches for user from COD API.
           let data;
-          try { data = await last20(userIds[key].acti_id, userIds[key].platform); }
+          try { data = (await last20(userIds[key].acti_id, userIds[key].platform)).matches; }
           catch (err) { setTimeout(async () => { 
             try { 
               console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
-              data = await last20(userIds[key].acti_id, userIds[key].platform); } 
+              data = (await last20(userIds[key].acti_id, userIds[key].platform)).matches; } 
             catch (err) { console.log(`Error during retry.`) } 
           }, 20000); }
 
+          console.log(data);
+
           // Get stats for each match and push to database.
-          await update(data.matches, userIds[key], lastTimestamp);
+          await update(data, userIds[key], lastTimestamp);
           console.log(`Updated matches for ${userIds[key].acti_id}.`);
         
         } catch (err) {
@@ -1594,13 +1596,11 @@ async function brookescribers() {
       console.log("Server is listening.");
     });
 
-    // Connect to database.
-    let client = await pool.connect();
-
-    await client.query(`UPDATE matches SET user_id = 'UnRationaL%231087071' WHERE user_id = 'UnRationaL%231087081';`)
-
     // Log into the COD API.
     await loginWithSSO(process.env.COD_SSO);
+
+    // Connect to database.
+    let client = await pool.connect();
 
     // Populate match cache and initialize userIds map.
     let temp = (await client.query(`SELECT * FROM allusers;`)).rows;

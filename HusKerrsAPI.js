@@ -1,3 +1,5 @@
+//@ts-check
+// ...
 'use strict';
 import 'dotenv/config';
 
@@ -8,6 +10,7 @@ import crypto from 'crypto';
 
 // HTTP utility.
 import axios from 'axios';
+import got from 'got';
 
 // Twitch and Discord bots.
 import tmi from 'tmi.js';
@@ -35,21 +38,31 @@ const pool = new Pool({
   }
 });
 
+// Page settings.
+import randomUseragent from 'random-useragent';
+import proxyChain from 'proxy-chain';
+
+let newProxyUrl;
+(async () => {
+  try {
+    newProxyUrl = await proxyChain.anonymizeProxy(process.env.PROXY);
+  } catch (err) {
+    console.log('Failed to anonymize proxy.');
+  }
+})();
+
+
 // Browser pool.
 const browserPool = new BrowserPool({
   browserPlugins: [new PlaywrightPlugin(firefox, {
+    useIncognitoPages: true,
     launchOptions: {
       headless: true,
-      proxy: {
-        server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
-        username: process.env.PROXY_USER,
-        password: process.env.PROXY_PASS
-      },
-      'args' : [
-        '--no-sandbox',
-        '--disable-setuid-sandbox'
-      ]
+      args: [
+        '--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${newProxyUrl || process.env.PROXY}`
+      ],
     },
+    proxyUrl: newProxyUrl || process.env.PROXY,
   })],
   useFingerprints: true,
 });
@@ -117,7 +130,7 @@ const bot = new tmi.Client({
 		username: 'zhekler',
 		password: process.env.TWITCH_BOT
 	},
-    channels: [ ]
+  channels: [ ]
 });
 
 // Logs the Twitch bot being initialized.
@@ -449,33 +462,33 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!lastgame':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await lastGame(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await lastGame(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!lastgames':
       case '!weekly':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await lastGames(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await lastGames(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!daily':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await daily(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await daily(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!bombs':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await bombs(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await bombs(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!wins': 
       if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await wins(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await wins(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!gulag':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await gulag(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await gulag(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!stats':
@@ -492,13 +505,13 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!teammates':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await teammates(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await teammates(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!modes':
       case '!gamemodes':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
+        bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id));
         break;
 
       case '!check':
@@ -509,8 +522,6 @@ bot.on('chat', async (channel, tags, message) => {
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1)) break;
         bot.say(channel, 'peepoLeave');
-        let byebye = bot.channels.indexOf(channel.substring(1));
-        if (byebye >= 0) bot.channels = bot.splice(byebye, 1);
         bot.part(channel);
         break;
 
@@ -564,8 +575,6 @@ let game_modes = {
   'br_rumble_clash_caldera': 'Clash'
 };
 
-
-const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36w";
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";
 let loggedIn = false;
 let mCache = {};
@@ -573,13 +582,11 @@ let mCache = {};
 
 let apiAxios = axios.create({
   headers: {
-      common: {
           "content-type": "application/json",
           "cookie": baseCookie,
-          "x-requested-with": userAgent,
+          "x-requested-with": process.env.USER_AGENT,
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
           "Connection": "keep-alive"
-      },
   },
   withCredentials: true
 });
@@ -591,13 +598,11 @@ let defaultBaseURL = "https://my.callofduty.com/api/papi-client/";
 
 let symAxios = axios.create({
   headers: {
-    common: {
       'Client-ID': client_config.client_id,
       'Authorization': 'Bearer ' + account_config.access_token,
       'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
       'content-type': 'application/json',
       'Connection': 'keep-alive'
-    },
   },
   withCredentials: true
 });
@@ -761,20 +766,30 @@ app.get('/brookescribers', async (request, response) => {
 
 app.get('/check/:id', async (request, response) => {
   try {
+    console.log(`Checking ${request.params.id}`);
     response.send(await check(request.params.id));
+    console.log(`Checked ${request.params.id}`);
   } catch (err) {
     console.log(err);
     response.send(err);
   }
 })
 
+
 async function check(id) {
   try {
+    const userAgent = randomUseragent.getRandom();
+    const UA = userAgent || process.env.USER_AGENT;
+
     const page = await browserPool.newPage();
 
-    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`);
+    await page.setExtraHTTPHeaders({ userAgent: UA });
+
+    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'networkidle0' });
     let data = await page.content();
     await page.close();
+
+    console.log(data);
 
     return data.substring(0, 30);
 
@@ -788,7 +803,7 @@ async function check(id) {
 // Get user's stats.
 app.get('/stats/:id', async (req, response) => {
   try {
-    response.send(await stats(username));
+    response.send(await stats(req.params.id, 'uno'));
   } catch (err) {
     console.log(`Error while getting other stats: ${err}`);
     response.send(`Error while getting stats.`)
@@ -827,7 +842,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     let players = (await matchInfo(req.params.matchid)).allPlayers;
 
     // String to add.
-    let addStr = [];
+    let addStr = '';
 
     // Get timestamp.
     let timestamp, placement, kills, deaths, gulag_kills, gulag_deaths, streak, game_mode;
@@ -869,7 +884,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
         if (placement.length == 2 && placement.charAt(0) == '1') {
           placement += 'th';
         } else {
-          placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)===2?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';
+          placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)==='2'?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';
         }
       }
       if (placement.includes('undefined')) placement = "-";
@@ -891,7 +906,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
 
     mCache[userIds[req.params.userid].acti_id].push(body);
 
-    addStr = `(${timestamp}, '${req.params.matchid}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${req.params.id}')`;
+    addStr = `(${timestamp}, '${req.params.matchid}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${req.params.userid}')`;
 
     let client = await pool.connect();
     await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);
@@ -925,8 +940,7 @@ async function lastGame(username) {
     // If cache is still empty, return.
     if (!mCache[username].length) {
       console.log('No matches found.')
-      res.send('No matches found.');
-      return;
+      return 'No matches found.';
     }
 
     // Get most recent match number and timestamp.
@@ -998,7 +1012,8 @@ async function daily(username) {
   try {
 
     // Midnight of current day.
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day').ts/1000;
+    // @ts-ignore
+    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
 
     // If cache is empty, check for matches in database.
     if (!mCache[username].length) {
@@ -1044,7 +1059,8 @@ async function bombs(username) {
   try {
 
     // Midnight of current day.
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day').ts/1000;
+    // @ts-ignore
+    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
 
     // If cache is empty, check for matches in database.
     if (!mCache[username].length) {
@@ -1078,7 +1094,8 @@ async function wins(username) {
   try {
 
     // Midnight of current day.
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day').ts/1000;
+    // @ts-ignore
+    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
 
     // If cache is empty, check for matches in database.
     if (!mCache[username].length) {
@@ -1112,7 +1129,8 @@ async function gulag(username) {
   try {
 
     // Midnight of current day.
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day').ts/1000;
+    // @ts-ignore
+    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
 
     // If cache is empty, check for matches in the database.
     if (!mCache[username].length) {
@@ -1304,6 +1322,7 @@ async function updateMatches() {
         try {
           // Get time from a week ago and set base timestamp.
           console.log("Updating matches for " + userIds[key].acti_id);
+          // @ts-ignore
           let weekAgo = DateTime.now().minus({weeks:1})/1000;
           let lastTimestamp = 0;
           
@@ -1351,7 +1370,7 @@ async function updateMatches() {
     });
 
   } catch (err) {
-    console.log(`${err}: Error while updating matches for ${userIds[key].acti_id}.`);
+    console.log(`${err}: Error while updating matches.`);
   }
 };
 
@@ -1386,7 +1405,7 @@ async function update(matches, user, lastTimestamp) {
         if (placement.length == 2 && placement.charAt(0) == '1') {
           placement += 'th';
         } else {
-          placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)===2?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';
+          placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)==='2'?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';
         }
       }
       if (placement.includes('undefined')) placement = "-";
@@ -1533,7 +1552,8 @@ async function brookescribers() {
   try {
 
     // Get Unix timestamp from 6 hours ago.
-    let sixAgo = DateTime.now().setZone('America/Denver').minus({hours:6}).ts/1000;
+    // @ts-ignore
+    let sixAgo = DateTime.now().setZone('America/Denver').minus({hours:6})/1000;
 
       // Get BrookeAB's last 20 followers.
       await symAxios.get('https://api.twitch.tv/helix/users/follows?to_id=214560121')
@@ -1612,6 +1632,7 @@ async function brookescribers() {
       let res = await client.query(`SELECT * FROM matches WHERE user_id = '${temp[i].acti_id}';`);
       mCache[temp[i].acti_id] = res.rows;
 
+      // @ts-ignore
       bot.channels.push(temp[i].user_id);
     };
 

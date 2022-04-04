@@ -1335,8 +1335,6 @@ async function updateMatches() {
             catch (err) { console.log(`Error during retry.`) } 
           }, 20000); }
 
-          console.log(data);
-
           // Get stats for each match and push to database.
           await update(data, userIds[key], lastTimestamp);
           console.log(`Updated matches for ${userIds[key].acti_id}.`);

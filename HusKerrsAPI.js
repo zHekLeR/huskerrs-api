@@ -1327,7 +1327,10 @@ async function updateMatches() {
           
           // Fetch last 20 matches for user from COD API.
           let data;
-          try { data = await last20(userIds[key].acti_id, userIds[key].platform); }
+          try { 
+            data = await last20(userIds[key].acti_id, userIds[key].platform); 
+            if (!data) throw new Error('Matches undefined.');
+          }
           catch (err) { setTimeout(async () => { 
             try { 
               console.log(`Error: ${userIds[key].acti_id}, retrying.`); 

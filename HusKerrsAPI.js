@@ -843,7 +843,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
   try {
     // Get all players for this match.
     let players = (await matchInfo(req.params.matchid)).allPlayers;
-
+console.log(userIds[req.params.userid]);
     // String to add.
     let addStr = '';
 

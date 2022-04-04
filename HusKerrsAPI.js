@@ -843,7 +843,7 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
   try {
     // Get all players for this match.
     let players = (await matchInfo(req.params.matchid)).allPlayers;
-console.log(userIds[req.params.userid]);
+
     // String to add.
     let addStr = '';
 
@@ -905,12 +905,12 @@ console.log(userIds[req.params.userid]);
       'lobby_kd': lobby_kd,
       'game_mode': game_mode,
       'teammates': teammates,
-      'user_id': userIds[req.params.userid].user_id
+      'user_id': userIds[req.params.userid].acti_id
     };
 
     mCache[userIds[req.params.userid].acti_id].push(body);
 
-    addStr = `(${timestamp}, '${req.params.matchid}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${userIds[req.params.userid].user_id}')`;
+    addStr = `(${timestamp}, '${req.params.matchid}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${userIds[req.params.userid].acti_id}')`;
 
     let client = await pool.connect();
     await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);

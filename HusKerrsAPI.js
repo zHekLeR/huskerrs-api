@@ -551,7 +551,7 @@ let game_modes = {
   'br_brquads': 'Battle Royale Quads',
   'br_brtrios': 'Battle Royale Trios',
   'br_brduos': 'Battle Royale Duos',
-  'br_brsolos': 'Battle Royale Solos',
+  'br_brsolo': 'Battle Royale Solos',
   'br_vg_royale_quads': 'Vanguard Royale Quads',
   'br_vg_royale_trio': 'Vanguard Royale Trios',
   'br_vg_royale_duo': 'Vanguard Royale Duos',

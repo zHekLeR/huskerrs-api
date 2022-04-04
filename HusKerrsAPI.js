@@ -781,20 +781,31 @@ app.get('/check/:id', async (request, response) => {
 
 async function check(id) {
   try {
-    const userAgent = randomUseragent.getRandom();
-    const UA = userAgent || process.env.USER_AGENT;
+    // const userAgent = randomUseragent.getRandom();
+    // const UA = userAgent || process.env.USER_AGENT;
 
-    const page = await browserPool.newPage();
+    // const page = await browserPool.newPage();
 
-    await page.setExtraHTTPHeaders({ userAgent: UA });
+    // await page.setExtraHTTPHeaders({ userAgent: UA });
 
-    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'networkidle0' });
-    let data = await page.content();
-    await page.close();
+    // await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'networkidle0' });
+    // let data = await page.content();
+    // await page.close();
 
-    console.log(data);
+    // console.log(data);
 
-    return data.substring(0, 30);
+    // return data.substring(0, 30);
+
+    let res = await symAxios.request({
+      method: 'GET',
+      url: `https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`,
+      proxy: {
+        host: `http://scraperapi:e419fda95c604348282a02ac44eb50d8@proxy-server.scraperapi.com:8001`,
+        port: 8001
+      }
+    });
+
+    return res;
 
   } catch (err) {
     console.log(`Check: ${err}`);

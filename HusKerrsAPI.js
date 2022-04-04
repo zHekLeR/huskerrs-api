@@ -1327,16 +1327,16 @@ async function updateMatches() {
           
           // Fetch last 20 matches for user from COD API.
           let data;
-          try { data = (await last20(userIds[key].acti_id, userIds[key].platform)).matches; }
+          try { data = await last20(userIds[key].acti_id, userIds[key].platform); }
           catch (err) { setTimeout(async () => { 
             try { 
               console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
-              data = (await last20(userIds[key].acti_id, userIds[key].platform)).matches; } 
+              data = await last20(userIds[key].acti_id, userIds[key].platform); } 
             catch (err) { console.log(`Error during retry.`) } 
           }, 20000); }
 
           // Get stats for each match and push to database.
-          await update(data, userIds[key], lastTimestamp);
+          await update(data.matches, userIds[key], lastTimestamp);
           console.log(`Updated matches for ${userIds[key].acti_id}.`);
         
         } catch (err) {

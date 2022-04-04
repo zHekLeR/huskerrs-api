@@ -1330,16 +1330,17 @@ async function updateMatches() {
           try { 
             data = await last20(userIds[key].acti_id, userIds[key].platform); 
             if (!data) throw new Error('Matches undefined.');
+            await update(data.matches, userIds[key], lastTimestamp);
           }
           catch (err) { setTimeout(async () => { 
             try { 
               console.log(`Error: ${userIds[key].acti_id}, retrying.`); 
-              data = await last20(userIds[key].acti_id, userIds[key].platform); } 
+              data = await last20(userIds[key].acti_id, userIds[key].platform); 
+              await update(data.matches, userIds[key], lastTimestamp); } 
             catch (err) { console.log(`Error during retry.`) } 
           }, 20000); }
 
           // Get stats for each match and push to database.
-          await update(data.matches, userIds[key], lastTimestamp);
           console.log(`Updated matches for ${userIds[key].acti_id}.`);
         
         } catch (err) {

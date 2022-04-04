@@ -179,7 +179,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].revolverroulette) break;
         if (!rrcd[tags["username"]] || rrcd[tags["username"]] < Date.now()) {
           bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"]));
-          rrcd[tags["username"]] = Date.now() + 60000;
+          rrcd[tags["username"]] = Date.now() + 300000;
         }
         break;
 

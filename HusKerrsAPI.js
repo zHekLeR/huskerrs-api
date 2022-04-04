@@ -800,7 +800,7 @@ async function check(id) {
       method: 'GET',
       url: `https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`,
       proxy: {
-        host: `http://scraperapi:e419fda95c604348282a02ac44eb50d8@proxy-server.scraperapi.com:8001`,
+        host: `http://scraperapi:e419fda95c604348282a02ac44eb50d8@proxy-server.scraperapi.com`,
         port: 8001
       }
     });

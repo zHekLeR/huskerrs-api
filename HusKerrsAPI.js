@@ -704,6 +704,7 @@ function loginWithSSO (sso) {
 
 function last20(gamertag, platform) {
   return new Promise((resolve, reject) => {
+    console.log(gamertag);
       let urlInput = defaultBaseURL + `crm/cod/v2/title/mw/platform/${platform}/gamer/${gamertag}/matches/wz/start/0/end/0/details`;
       sendRequest(urlInput).then(data => resolve(data)).catch(e => reject(e));
   });
@@ -1366,7 +1367,7 @@ async function updateMatches() {
           console.log(`Updating matches: ${err}`);
           return; 
         }
-      }, i*10000);
+      }, i*20000);
     });
 
   } catch (err) {

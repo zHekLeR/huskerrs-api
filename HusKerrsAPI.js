@@ -564,10 +564,10 @@ let game_modes = {
   'br_buy_back_trios': 'Buyback Trios',
   'br_buy_back_duos': 'Buyback Duos',
   'br_buy_back_solos': 'Buyback Solos',
-  'br_rebirth_rbrthquad': 'Resurgence Quads',
-  'br_rebirth_rbrthtrio': 'Resurgence Trios',
-  'br_rebirth_rbrthduo': 'Resurgence Duos',
-  'br_rebirth_rbrthsolo': 'Resurgence Solos',
+  'br_rebirth_rbrthquads': 'Resurgence Quads',
+  'br_rebirth_rbrthtrios': 'Resurgence Trios',
+  'br_rebirth_rbrthduos': 'Resurgence Duos',
+  'br_rebirth_rbrthsolos': 'Resurgence Solos',
   'br_rebirth_reverse_playlist_wz325/rbrthsolos': 'Rebirth Reverse',
   'br_rebirth_reverse_playlist_wz325/rbrthduos': 'Rebirth Reverse',
   'br_rebirth_reverse_playlist_wz325/rbrthtrios': 'Rebirth Reverse',
@@ -707,7 +707,6 @@ function loginWithSSO (sso) {
 
 function last20(gamertag, platform) {
   return new Promise((resolve, reject) => {
-    console.log(gamertag);
       let urlInput = defaultBaseURL + `crm/cod/v2/title/mw/platform/${platform}/gamer/${gamertag}/matches/wz/start/0/end/0/details`;
       sendRequest(urlInput).then(data => resolve(data)).catch(e => reject(e));
   });

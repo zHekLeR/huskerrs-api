@@ -798,16 +798,7 @@ async function check(id) {
 
     let res = await symAxios.request({
       method: 'GET',
-      url: `https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`,
-      proxy: {
-        host: `proxy-server.scraperapi.com`,
-        port: 8001,
-        auth: {
-          username: `scraperapi`,
-          password: `e419fda95c604348282a02ac44eb50d8`
-        },
-        protocol: `HTTP`
-      }
+      url: `http://api.scraperapi.com?api_key=e419fda95c604348282a02ac44eb50d8&url=https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`,
     });
 
     return res;

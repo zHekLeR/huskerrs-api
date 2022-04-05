@@ -26,7 +26,7 @@ async function bigVanish(id) {
 
             // User is not in the database. Add them.
             person = { user_id: id, vanish: rand, lowest: rand };
-            await client.query(`INSERT INTO bigvanish(user_id, vanish)VALUES('${person.user_id}', ${person.vanish}, ${person.lowest});`);
+            await client.query(`INSERT INTO bigvanish(user_id, vanish, lowest)VALUES('${person.user_id}', ${person.vanish}, ${person.lowest});`);
 
         } else {
 

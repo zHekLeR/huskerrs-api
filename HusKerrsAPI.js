@@ -15,9 +15,8 @@ import got from 'got';
 // Twitch and Discord bots.
 import tmi from 'tmi.js';
 import { Client, Intents } from "discord.js";
-import { firefox } from 'playwright-extra';
+import { firefox } from 'playwright-firefox';
 import { BrowserPool, PlaywrightPlugin } from 'browser-pool';
-import { RecaptchaPlugin } from '@extra/recaptcha';
 
 // Games,
 import * as wordle from './games/wordle.js';
@@ -42,15 +41,6 @@ const pool = new Pool({
 // Page settings.
 import randomUseragent from 'random-useragent';
 
-// Recaptcha service.
-const recaptcha = new RecaptchaPlugin({
-  provider: {
-    id: '2captcha',
-    token: '8d1d36f337d7efc54a9a485a4a17fc4a'
-  }
-});
-firefox.use(recaptcha);
-
 // Browser pool.
 const browserPool = new BrowserPool({
   browserPlugins: [new PlaywrightPlugin(firefox, {
@@ -58,12 +48,15 @@ const browserPool = new BrowserPool({
     launchOptions: {
       headless: true,
       args: [
-        '--no-sandbox', '--disable-setuid-sandbox'
+        '--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${process.env.PROXY}`
       ],
-      proxy: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
-      username: process.env.PROXY_USER,
-      password: process.env.PROXY_PASS
+      proxy: {
+        server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
+        username: process.env.PROXY_USER,
+        password: process.env.PROXY_PASS
+      }
     },
+    proxyUrl: process.env.PROXY
   })],
   useFingerprints: true,
 });
@@ -792,14 +785,11 @@ async function check(id) {
 
     await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'domcontentloaded' });
 
-    await page.solveRecaptchas();
-
     let data = await page.content();
-    await page.close();
 
-    console.log(data);
+    console.log(data.substring(0,30));
 
-    return data.substring(0, 30);
+    return;
 
   } catch (err) {
     console.log(`Check: ${err}`);

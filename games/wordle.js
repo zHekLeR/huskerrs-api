@@ -19,6 +19,7 @@ const r = '🔴';
 
 // Define arrays of possible words and allowed words.
 import fs from 'fs';
+import { stringify } from 'querystring';
 const possible = fs.readFileSync("./games/possible.txt").toString('utf-8').split("\n");
 const allowed = fs.readFileSync("./games/allowed.txt").toString('utf-8').split("\n");
 
@@ -126,7 +127,7 @@ async function wordleGuess(id, guess) {
     try {
 
         // Check word length and whether it's in the list of allowed words.
-        if (guess.length != 5 || !allowed.includes(guess)) {
+        if (guess.length != 5 || !allowed.includes(guess.toLowercase())) {
             return `@${id}: Your guess must be a real 5-letter English word (no names/cities/proper nouns).`;
         }
 

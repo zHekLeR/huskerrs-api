@@ -14,6 +14,7 @@
   "author": "zHekLeR",
   "license": "ISC",
   "dependencies": {
+    "@extra/recaptcha": "^4.2.1-next.616",
     "axios": "^0.26.1",
     "browser-pool": "^3.1.1",
     "crypto": "^1.0.1",
@@ -23,10 +24,8 @@
     "fs": "^0.0.1-security",
     "got": "^12.0.3",
     "luxon": "^2.3.1",
-    "nvm": "^0.0.4",
     "pg": "^8.7.3",
-    "playwright-firefox": "^1.21.0-alpha-apr-2-2022",
-    "proxy-chain": "^2.0.1-beta.3",
+    "playwright-extra": "^4.2.1-next.616",
     "random-useragent": "^0.5.0",
     "tmi.js": "^1.8.5",
     "uniqid": "^5.4.0"

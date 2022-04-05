@@ -15,8 +15,9 @@ import got from 'got';
 // Twitch and Discord bots.
 import tmi from 'tmi.js';
 import { Client, Intents } from "discord.js";
-import { firefox } from 'playwright-firefox';
+import { firefox } from 'playwright-extra';
 import { BrowserPool, PlaywrightPlugin } from 'browser-pool';
+import { RecaptchaPlugin } from '@extra/recaptcha';
 
 // Games,
 import * as wordle from './games/wordle.js';
@@ -40,17 +41,15 @@ const pool = new Pool({
 
 // Page settings.
 import randomUseragent from 'random-useragent';
-import proxyChain from 'proxy-chain';
 
-let newProxyUrl;
-(async () => {
-  try {
-    newProxyUrl = await proxyChain.anonymizeProxy(process.env.PROXY);
-  } catch (err) {
-    console.log('Failed to anonymize proxy.');
+// Recaptcha service.
+const recaptcha = new RecaptchaPlugin({
+  provider: {
+    id: '2captcha',
+    token: '8d1d36f337d7efc54a9a485a4a17fc4a'
   }
-})();
-
+});
+firefox.use(recaptcha);
 
 // Browser pool.
 const browserPool = new BrowserPool({
@@ -59,10 +58,12 @@ const browserPool = new BrowserPool({
     launchOptions: {
       headless: true,
       args: [
-        '--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${newProxyUrl || process.env.PROXY}`
+        '--no-sandbox', '--disable-setuid-sandbox'
       ],
+      proxy: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
+      username: process.env.PROXY_USER,
+      password: process.env.PROXY_PASS
     },
-    proxyUrl: newProxyUrl || process.env.PROXY,
   })],
   useFingerprints: true,
 });
@@ -516,6 +517,7 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!check':
         if (!userIds[channel.substring(1)].matches || !tags["mod"]) break;
+        // @ts-ignore
         bot.say(channel, await check(encodeURIComponent(message.split(' ')[1])));
         break;
 
@@ -781,27 +783,23 @@ app.get('/check/:id', async (request, response) => {
 
 async function check(id) {
   try {
-    // const userAgent = randomUseragent.getRandom();
-    // const UA = userAgent || process.env.USER_AGENT;
+    const userAgent = randomUseragent.getRandom();
+    const UA = userAgent || process.env.USER_AGENT;
 
-    // const page = await browserPool.newPage();
+    const page = await browserPool.newPage();
 
-    // await page.setExtraHTTPHeaders({ userAgent: UA });
+    await page.setExtraHTTPHeaders({ userAgent: UA, 'Accept-Language': 'en' });
 
-    // await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'networkidle0' });
-    // let data = await page.content();
-    // await page.close();
+    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'domcontentloaded' });
 
-    // console.log(data);
+    await page.solveRecaptchas();
 
-    // return data.substring(0, 30);
+    let data = await page.content();
+    await page.close();
 
-    let res = await symAxios.request({
-      method: 'GET',
-      url: `http://api.scraperapi.com?api_key=e419fda95c604348282a02ac44eb50d8&url=https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`,
-    });
+    console.log(data);
 
-    return res;
+    return data.substring(0, 30);
 
   } catch (err) {
     console.log(`Check: ${err}`);

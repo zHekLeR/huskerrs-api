@@ -127,7 +127,7 @@ async function wordleGuess(id, guess) {
     try {
 
         // Check word length and whether it's in the list of allowed words.
-        if (guess.length != 5 || !allowed.includes(guess.toLowercase())) {
+        if (guess.length != 5 || !allowed.includes(guess.toLowerCase())) {
             return `@${id}: Your guess must be a real 5-letter English word (no names/cities/proper nouns).`;
         }
 

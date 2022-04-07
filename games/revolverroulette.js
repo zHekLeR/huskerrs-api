@@ -15,7 +15,7 @@ async function revolverroulette(id) {
 
     // Get random number and determine whether the user won or lost.
     let rand = Math.floor(Math.random()*3);
-    let shoot = `${rand?'/me '+id+' survived a round of Revolver Roulette!':'/timeout '+id+' 300 BOOM you died!'}`;
+    let shoot = `${rand?'/me '+id+' survived RR!':'/timeout '+id+' 300 BOOM you died!'}`;
 
     // Pull user from the Revolver Roulette database.
     let client = await pool.connect();
@@ -27,7 +27,7 @@ async function revolverroulette(id) {
       // User has not played before. Add them to the database.
       person = { user_id: id, survive: 0, die: 0 };
       await client.query(`INSERT INTO revolverroulette(user_id, survive, die)VALUES('${person.user_id}', ${person.survive}, ${person.die});`);
-      shoot = `@${id}: Revolver Roulette is a game where you have a 1/3 chance to get timed out for 5 minutes. You have been warned. Type !rr to play!`;
+      shoot = `@${id}: Revolver Roulette is a game where you have 1/3 chance to be timed out for 5 min. You have been warned.`;
 
     } else {
 
@@ -35,7 +35,7 @@ async function revolverroulette(id) {
       person.survive += rand?1:0;
       person.die += rand?0:1;
       await client.query(`UPDATE revolverroulette SET ${rand?'survive':'die'} = ${rand?person.survive:person.die} WHERE user_id = '${id}';`)
-      shoot += ` ${id} has survived ${person.survive} time${person.survive == 1?'':'s'} and died ${person.die} time${person.die == 1?'':'s'}!`;
+      shoot += ` ${id}'s record is ${person.survive} survival${person.survive == 1?'':'s'} and ${person.die} death${person.die == 1?'':'s'}!`;
 
     }
 

@@ -567,7 +567,11 @@ let game_modes = {
   'br_rebirth_reverse_playlist_wz325/rbrthduos': 'Rebirth Reverse',
   'br_rebirth_reverse_playlist_wz325/rbrthtrios': 'Rebirth Reverse',
   'br_rebirth_reverse_playlist_wz325/rbrthquads': 'Rebirth Reverse',
-  'br_rumble_clash_caldera': 'Clash'
+  'br_rumble_clash_caldera': 'Clash',
+  'br_dmz_playlist_wz325/rbrthbmo_quads': 'Rebirth Reinforced Quads',
+  'br_dmz_playlist_wz325/rbrthbmo_trios': 'Rebirth Reinforced Trios',
+  'br_dmz_playlist_wz325/rbrthbmo_duos': 'Rebirth Reinforced Duos',
+  'br_dmz_playlist_wz325/rbrthbmo_solos': 'Rebirth Reinforced Solos'
 };
 
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";

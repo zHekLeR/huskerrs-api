@@ -1016,7 +1016,7 @@ async function daily(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
+    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
 
     // If cache is empty, check for matches in database.
     if (!mCache[username].length) {
@@ -1063,7 +1063,7 @@ async function bombs(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
+    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
 
     // If cache is empty, check for matches in database.
     if (!mCache[username].length) {
@@ -1098,7 +1098,7 @@ async function wins(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
+    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
 
     // If cache is empty, check for matches in database.
     if (!mCache[username].length) {
@@ -1133,7 +1133,7 @@ async function gulag(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Denver').startOf('day')/1000;
+    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
 
     // If cache is empty, check for matches in the database.
     if (!mCache[username].length) {

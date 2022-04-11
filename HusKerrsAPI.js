@@ -413,7 +413,7 @@ bot.on('chat', async (channel, tags, message) => {
         let total = 0;
         multis = res.rows[0].multipliers.split(' ');
         for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
-          for (let j = multis.length/2; j > 0; j--) {
+          for (let j = multis.length/2; j >= 0; j--) {
             if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
               placement = parseFloat(multis[(2*j)+1]);
               break;

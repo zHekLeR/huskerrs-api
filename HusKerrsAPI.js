@@ -318,7 +318,7 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, '!enable !score false');
         bot.say(channel, '!enable !mc false');
         client = await pool.connect();
-        await client.query(`UPDATE allusers SET customs = true WHERE user_id = '${channel.substring(1)};`)
+        await client.query(`UPDATE allusers SET customs = true WHERE user_id = '${channel.substring(1)}';`)
         client.release();
         userIds[channel.substring(1)].customs = true;
         break;
@@ -328,7 +328,7 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, '!enable !score true');
         bot.say(channel, '!enable !mc true');
         client = await pool.connect();
-        await client.query(`UPDATE allusers SET customs = false WHERE user_id = '${channel.substring(1)};`);
+        await client.query(`UPDATE allusers SET customs = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         userIds[channel.substring(1)].customs = false;
         break;

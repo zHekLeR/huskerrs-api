@@ -386,7 +386,7 @@ bot.on('chat', async (channel, tags, message) => {
         res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
         res.rows[0].maps.placement.length = res.rows[0].maps.placement.length?res.rows[0].maps.placement.length-1:0;
         res.rows[0].maps.kills.length = res.rows[0].maps.kills.length?res.rows[0].maps.kills.length-1:0;
-        await client.query(`UPDATE customs SET maps = '{"placement":${res.rows[0].maps.placement.length?'['+res.rows[0].maps.placement.join(',')+']':'[]'},"kills":${res.rows[0].maps.kills.length ?'['+res.rows[0].maps.kills.join(',')+']':'[]'}}::json' WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET maps = '{"placement":${res.rows[0].maps.placement.length?'['+res.rows[0].maps.placement.join(',')+']':'[]'}}'::json,"kills":${res.rows[0].maps.kills.length ?'['+res.rows[0].maps.kills.join(',')+']':'[]'}}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         bot.say(channel, `Last map has been removed.`);
         break;

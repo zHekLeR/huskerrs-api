@@ -119,7 +119,7 @@ bot.on('chat', async (channel, tags, message) => {
 
     // Check/set global cooldown on command.
     if (gcd[short] && gcd[short] > Date.now()) return;
-    gcd[short] = Date.now() + 3000;
+    gcd[short] = Date.now() + 1000;
 
     // Base values.
     let client, res, placement, kills, multis, score, str;
@@ -361,7 +361,7 @@ bot.on('chat', async (channel, tags, message) => {
         res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
         res.rows[0].maps.placement.length = res.rows[0].maps.placement.length?res.rows[0].maps.placement.length-1:0;
         res.rows[0].maps.kills.length = res.rows[0].maps.kills.length?res.rows[0].maps.kills.length-1:0;
-        await client.query(`UPDATE customs SET maps = '{"placement":${res.rows[0].maps.placement.length?'['+res.rows[0].maps.placement.join(',')+']':'[]'}}'::json,"kills":${res.rows[0].maps.kills.length ?'['+res.rows[0].maps.kills.join(',')+']':'[]'}}'::json WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET maps = '{"placement":${res.rows[0].maps.placement.length?'['+res.rows[0].maps.placement.join(',')+']':'[]'},"kills":${res.rows[0].maps.kills.length ?'['+res.rows[0].maps.kills.join(',')+']':'[]'}}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         bot.say(channel, `Last map has been removed.`);
         break;
@@ -483,14 +483,8 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id));
         break;
 
-      case '!check':
-        if (!userIds[channel.substring(1)].matches || !tags["mod"]) break;
-        // @ts-ignore
-        bot.say(channel, await check(encodeURIComponent(message.split(' ')[1])));
-        break;
-
       case '!zhekleave':
-        if (tags["username"] !== channel.substring(1)) break;
+        if (tags["username"] !== channel.substring(1) && tags["username"] !== "zhekler") break;
         bot.say(channel, 'peepoLeave');
         bot.part(channel);
         break;

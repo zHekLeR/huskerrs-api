@@ -15,8 +15,6 @@ import got from 'got';
 // Twitch and Discord bots.
 import tmi from 'tmi.js';
 import { Client, Intents } from "discord.js";
-import { firefox } from 'playwright-firefox';
-import { BrowserPool, PlaywrightPlugin } from 'browser-pool';
 
 // Games,
 import * as wordle from './games/wordle.js';
@@ -36,29 +34,6 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false
   }
-});
-
-// Page settings.
-import randomUseragent from 'random-useragent';
-
-// Browser pool.
-const browserPool = new BrowserPool({
-  browserPlugins: [new PlaywrightPlugin(firefox, {
-    useIncognitoPages: true,
-    launchOptions: {
-      headless: true,
-      args: [
-        '--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${process.env.PROXY}`
-      ],
-      proxy: {
-        server: `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
-        username: process.env.PROXY_USER,
-        password: process.env.PROXY_PASS
-      }
-    },
-    proxyUrl: process.env.PROXY
-  })],
-  useFingerprints: true,
 });
 
 // Cooldowns for games.
@@ -765,41 +740,6 @@ app.get('/brookescribers', async (request, response) => {
     response.send("Error during brookscribers");
   }
 });
-
-app.get('/check/:id', async (request, response) => {
-  try {
-    console.log(`Checking ${request.params.id}`);
-    response.send(await check(request.params.id));
-    console.log(`Checked ${request.params.id}`);
-  } catch (err) {
-    console.log(err);
-    response.send(err);
-  }
-})
-
-
-async function check(id) {
-  try {
-    const userAgent = randomUseragent.getRandom();
-    const UA = userAgent || process.env.USER_AGENT;
-
-    const page = await browserPool.newPage();
-
-    await page.setExtraHTTPHeaders({ userAgent: UA, 'Accept-Language': 'en' });
-
-    await page.goto(`https://api.tracker.gg/api/v2/warzone/standard/profile/atvi/${id}`, { waitUntil: 'domcontentloaded' });
-
-    let data = await page.content();
-
-    console.log(data.substring(0,30));
-
-    return;
-
-  } catch (err) {
-    console.log(`Check: ${err}`);
-    return;
-  }
-};
 
 
 // Get user's stats.

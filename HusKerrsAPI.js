@@ -290,8 +290,10 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!customon':
         if (userIds[channel.substring(1)].customs || !tags["mod"]) break;
-        bot.say(channel, '!enable !score false');
-        bot.say(channel, '!enable !mc false');
+        if (channel.substring(1) === 'huskerrs') {
+          bot.say(channel, '!enable !score false');
+          bot.say(channel, '!enable !mc false');
+        }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET customs = true WHERE user_id = '${channel.substring(1)}';`)
         client.release();
@@ -300,8 +302,10 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!customoff':
         if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;;
-        bot.say(channel, '!enable !score true');
-        bot.say(channel, '!enable !mc true');
+        if (channel.substring(1) === 'huskerrs') {
+          bot.say(channel, '!enable !score true');
+          bot.say(channel, '!enable !mc true');
+        }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET customs = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();

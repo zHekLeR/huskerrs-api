@@ -40,7 +40,7 @@ const pool = new Pool({
 let rrcd = [], rpscd = [], cfcd = [], bvcd = [];
 
 // Global cooldowns.
-let gcd = [];
+let gcd = { };
 
 // Active elements for each user.
 let userIds = {};
@@ -118,8 +118,8 @@ bot.on('chat', async (channel, tags, message) => {
     let short = message.split(' ')[0].toLowerCase();
 
     // Check/set global cooldown on command.
-    if (gcd[short] && gcd[short] > Date.now()) return;
-    gcd[short] = Date.now() + 1000;
+    if (gcd[channel.substring(1)][short] && gcd[channel.substring(1)][short] > Date.now()) return;
+    gcd[channel.substring(1)][short] = Date.now() + 1000;
 
     // Base values.
     let client, res, placement, kills, multis, score, str;
@@ -1580,6 +1580,7 @@ async function brookescribers() {
 
       // @ts-ignore
       bot.channels.push(temp[i].user_id);
+      gcd[temp[i].user_id] = { };
     };
 
     // Set the 5 minute interval for each player being tracked and get their active elements.

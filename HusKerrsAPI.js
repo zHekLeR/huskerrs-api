@@ -769,8 +769,23 @@ async function stats(username, platform) {
     return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
 
   } catch (err) {
-    console.log(`Stats: ${err}`);
-    return;
+    try {
+      // Get stats.
+      let data = await lifetime(username, platform);
+
+      // Format stats.
+      let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;
+      let lk = data.lifetime.mode.br.properties.kdRatio.toFixed(2);
+      let wk = data.weekly.mode.br_all?data.weekly.mode.br_all.properties.kdRatio.toFixed(2):'-';
+      let wins = data.lifetime.mode.br.properties.wins;
+      let kills = data.lifetime.mode.br.properties.kills;
+
+      // Return response.
+      return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
+    } catch (err) {
+      console.log(`Stats: ${err}`);
+      return;
+    }
   }
 };
 

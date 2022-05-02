@@ -494,7 +494,7 @@ bot.on('chat', async (channel, tags, message) => {
         break;
       
       case '!2v2on':
-        if (userIds[channel.substring(1)]["two_v_two"] || !tags["mod"] || tags["username"] !== 'esspydermonkey') break;
+        if ((userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
         }
@@ -507,7 +507,7 @@ bot.on('chat', async (channel, tags, message) => {
         break;
 
       case '!2v2off':
-        if (!userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) break;;
+        if ((!userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score true');
         }

@@ -811,7 +811,7 @@ app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => 
     response.sendStatus(200);
   } catch (err) {
     console.log(`Error during 2v2 update: ${err}`);
-    response.sendStatus(500);
+    response.send(`2v2 not enabled.`);
   }
 });
 

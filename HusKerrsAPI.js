@@ -1012,7 +1012,7 @@ app.get('/score/:user', async (request, response) => {
     let multis = res.rows[0].multipliers.split(' ');
     for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
       let placement;
-      for (let j = multis.length/2; j >= 0; j++) {
+      for (let j = multis.length/2; j >= 0; j--) {
         if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
           placement = parseFloat(multis[2*j]);
           break;

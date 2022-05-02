@@ -933,7 +933,7 @@ app.get('/addmap/:user/:place/:kills', async (request, response) => {
     }
     res.rows[0].maps.placement.push(placement);
     res.rows[0].maps.kills.push(kills);
-    await client.query(`UPDATE customs SET maps = '{"placement: '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
     client.release();
     let place;
     if (placement > 3 && placement < 21) {

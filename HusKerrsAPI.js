@@ -494,12 +494,13 @@ bot.on('chat', async (channel, tags, message) => {
         break;
       
       case '!2v2on':
-        if (userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) break;
+        if (userIds[channel.substring(1)]["two_v_two"] || !tags["mod"] || tags["username"] !== 'esspydermonkey') break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
         }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`)
+        await client.query(`UPDATE twovtwo SET hkills = 0, tkills = 0, o1kills = 0, o2kills = 0 WHERE userid = '${channel.substring(1)}';`)
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = true;
         tvtInt.push(setInterval(function() {tvtscores(channel.substring(1))}, 30000));

@@ -358,7 +358,7 @@ bot.on('chat', async (channel, tags, message) => {
         } else {
           placement = `${placement}th`;
         }
-        bot.say(channel, `Team ${channel} got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
+        bot.say(channel, `Team ${channel.substring(1)} got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
         break;
 
       case '!removemap':
@@ -841,7 +841,7 @@ app.get('/customson/:user', async (request, response) => {
       console.log(`Adding user: ${request.params.user}`);
       client = await pool.connect();
       await client.query(`INSERT INTO allusers(user_id, customs, thruweb) VALUES('${request.params.user.toLowerCase()}', true, true)`);
-      await client.query(`INSERT INTO customs VALUES('{"maps": [], "map_count": 0, "multipliers": '0 0', user_id = '${request.params.user.toLowerCase()}'}'::json);`);
+      await client.query(`INSERT INTO customs VALUES('{"maps": '{"placement": [], "kills": []}'::json, "map_count": 0, "multipliers": '0 0', user_id = '${request.params.user.toLowerCase()}'}');`);
       client.release();
       userIds[request.params.user.toLowerCase()] = { user_id: request.params.user.toLowerCase(), customs: true };
       response.send(`Added ${request.params.user} to database and enabled customs.`);

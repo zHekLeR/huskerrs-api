@@ -32,6 +32,24 @@
         })
     })();
 
+    let sInt;
+
+    function update() {
+        try {
+            fetch(`/post/${document.getElementById('hKills').value}/${document.getElementById('tKills').value}/${document.getElementById('o1Kills').value}/${document.getElementById('o2Kills').value}`, {
+                method: "GET"
+            });
+            console.log('2v2 update success.');
+        } catch (err) {
+            if (err.message.includes('not enabled')) {
+                clearInterval(sInt);
+            }
+            console.log(`Error during update function: ${err}`);
+        }
+    }
+
+    sInt = setInterval(update, 15000);
+
     function add(id) {
         document.getElementById(id).stepUp(1);
     }
@@ -57,22 +75,6 @@
             console.log(`Error during 2v2 reset: ${err}`);
         }
     }
-
-    function update() {
-        try {
-            fetch(`/post/${document.getElementById('hKills').value}/${document.getElementById('tKills').value}/${document.getElementById('o1Kills').value}/${document.getElementById('o2Kills').value}`, {
-                method: "GET"
-            }).then(res => {
-                console.log('2v2 update success.');
-            }).catch(err => {
-                console.log('2v2 update failed.')
-            });
-        } catch (err) {
-            console.log(`Error during sub function: ${err}`);
-        }
-    }
-
-    setInterval(update, 15000);
 </script>
 
 </body>

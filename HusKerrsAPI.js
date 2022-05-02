@@ -903,7 +903,7 @@ app.get('/setplacement/:user/:placement', async (request, response) => {
       return;
     }
     let client = await pool.connect();
-    await client.query(`UPDATE customs SET multipliers = '${decodeURIComponent(request.params.placement)}';`);
+    await client.query(`UPDATE customs SET multipliers = '${decodeURIComponent(request.params.placement)}' WHERE user_id = '${request.params.user.toLowerCase()}';`);
     client.release();
     response.send(`Set placement for ${request.params.user}.`);
   } catch (err) {

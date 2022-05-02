@@ -1930,9 +1930,11 @@ async function brookescribers() {
       let res = await client.query(`SELECT * FROM matches WHERE user_id = '${temp[i].acti_id}';`);
       mCache[temp[i].acti_id] = res.rows;
 
-      // @ts-ignore
-      bot.channels.push(temp[i].user_id);
-      gcd[temp[i].user_id] = { };
+      if (temp[i].twitch) {
+        // @ts-ignore
+        bot.channels.push(temp[i].user_id);
+        gcd[temp[i].user_id] = { };
+      }
     };
 
     // Set the 5 minute interval for each player being tracked and get their active elements.

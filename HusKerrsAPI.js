@@ -102,6 +102,8 @@ const bot = new tmi.Client({
   channels: [ ]
 });
 
+let tvtInt = [];
+
 // Logs the Twitch bot being initialized.
 bot.on('logon', () => {
   console.log("Twitch bot logged on.");
@@ -384,27 +386,31 @@ bot.on('chat', async (channel, tags, message) => {
         break;
 
       case '!score':
-        if (!userIds[channel.substring(1)].customs) break;
-        client = await pool.connect();
-        res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
-        client.release();
-        score = [];
-        let total = 0;
-        multis = res.rows[0].multipliers.split(' ');
-        for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
-          for (let j = multis.length/2; j >= 0; j--) {
-            if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
-              placement = parseFloat(multis[(2*j)+1]);
-              break;
+        if (!userIds[channel.substring(1)].customs && !userIds[channel.substring(1)].two_v_two) break;
+        if (userIds[channel.substring(1)].customs) {
+          client = await pool.connect();
+          res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
+          client.release();
+          score = [];
+          let total = 0;
+          multis = res.rows[0].multipliers.split(' ');
+          for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
+            for (let j = multis.length/2; j >= 0; j--) {
+              if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
+                placement = parseFloat(multis[(2*j)+1]);
+                break;
+              }
             }
+            score.push(`Map ${i + 1}: ${(res.rows[0].maps.kills[i] * placement).toFixed(2)}`);
+            total += res.rows[0].maps.kills[i] * placement;
           }
-          score.push(`Map ${i + 1}: ${(res.rows[0].maps.kills[i] * placement).toFixed(2)}`);
-          total += res.rows[0].maps.kills[i] * placement;
+          str = score.join(' | ');
+          if (score.length < res.rows[0].map_count) str += score.length?` | Map ${score.length + 1}: TBD`:`Map 1: TBD`;
+          str += ` | Total: ${total.toFixed(2)} pts`;
+          bot.say(channel, str);
+        } else {
+          await tvtscores(channel.substring(1));
         }
-        str = score.join(' | ');
-        if (score.length < res.rows[0].map_count) str += score.length?` | Map ${score.length + 1}: TBD`:`Map 1: TBD`;
-        str += ` | Total: ${total.toFixed(2)} pts`;
-        bot.say(channel, str);
         break;
 
       case '!resetmaps':
@@ -486,6 +492,33 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].matches) break;
         bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id));
         break;
+      
+      case '!2v2on':
+        if (userIds[channel.substring(1)].two_v_two || !tags["mod"]) break;
+        if (channel.substring(1) === 'huskerrs') {
+          bot.say(channel, '!enable !score false');
+        }
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`)
+        client.release();
+        userIds[channel.substring(1)].two_v_two = true;
+        tvtInt.push(setInterval(function() {tvtscores(channel.substring(1))}, 30000));
+        break;
+
+      case '!2v2off':
+        if (!userIds[channel.substring(1)].two_v_two || !tags["mod"]) break;;
+        if (channel.substring(1) === 'huskerrs') {
+          bot.say(channel, '!enable !score true');
+        }
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET two_v_two = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].two_v_two = false;
+        for (let i = 0; i < tvtInt.length; i++) {
+          clearInterval(tvtInt[i]);
+        }
+        tvtInt = [];
+        break;
 
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1) && tags["username"] !== "zhekler") break;
@@ -499,6 +532,22 @@ bot.on('chat', async (channel, tags, message) => {
   }
 });
 
+if (userIds['huskerrs'].two_v_two) {
+  tvtInt.push(setInterval(function() {tvtscores('huskerrs')}, 30000))
+}
+
+async function tvtscores(channel) {
+  try {
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM twovtwo WHERE user_id = '${channel}';`);
+    client.release();
+    let us = res.rows[0].hkills + res.rows[0].tkills;
+    let opp = res.rows[0].o1kills + res.rows[0].o2kills;
+    bot.say(channel, `${us} - ${opp} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
+  } catch (err) {
+    console.log(`Error during tvtscores: ${err}`);
+  }
+}
 
 // Twitch bot subscription handler.
 bot.on('subscription', (channel, username, method, message, userstate) => {
@@ -704,13 +753,82 @@ function lifetime(gamertag, platform) {
 
 // Create server.
 const app = express();
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'node_modules')));
 
 
 // Home page.
-import fs from 'fs';
 app.get('/', (request, response) => {
   const homepage = fs.readFileSync("./page.html").toString('utf-8');
   response.send(homepage);
+});
+
+
+// 2v2
+app.get('/twovtwo', (request, response) => {
+  try {
+    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    response.sendFile(path.join(__dirname, 'two_v_two.html'));
+  } catch (err) {
+    console.log(err);
+    response.send(err);
+  }
+});
+
+
+// Get 2v2 scores.
+app.get ('/twovtwoscores', async (request, response) => {
+  try {
+    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = 'HusKerrs';`);
+    client.release();
+
+    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills}`);
+  } catch (err) {
+    console.log(`Error getting 2v2 scores: ${err}`);
+    response.send('Error');
+  }
+});
+
+
+// Post
+app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
+  try {
+    if (!userIds['HusKerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+
+    let client = await pool.connect();
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'HusKerrs';`);
+    client.release();
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(`Error during 2v2 update: ${err}`);
+    response.sendStatus(500);
+  }
+});
+
+
+// Reset
+app.get('/post/reset', async (request, response) => {
+  try {
+    if (!userIds['HusKerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+
+    let client = await pool.connect();
+    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = 'HusKerrs';`);
+    client.release();
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(`Error during 2v2 reset: ${err}`);
+    response.sendStatus(500);
+  }
 });
 
 

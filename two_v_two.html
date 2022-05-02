@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>HusKerrs' 2v2 Counter</h1>
+<p></p>
+<br>HusKerrs Kills: <button onclick="add('hKills')">+</button> <input id="hKills" type="number" min="0" value="0" readonly="true"></sub> <button onclick="sub('hKills')">-</button></br>
+<br>Teammate Kills: <button onclick="add('tKills')">+</button> <input id="tKills" type="number" min="0" value="0" readonly="true"></sub> <button onclick="sub('tKills')">-</button></br>
+<br>
+<br>
+<br>Opponent 1 Kills: <button onclick="add('o1Kills')">+</button> <input id="o1Kills" type="number" min="0" value="0" readonly="true"></sub> <button onclick="sub('o1Kills')">-</button></br>
+<br>Opponent 2 Kills: <button onclick="add('o2Kills')">+</button> <input id="o2Kills" type="number" min="0" value="0" readonly="true"></sub> <button onclick="sub('o2Kills')">-</button></br>
+<br>
+<button onclick="reset()">Reset All</button>
+
+<script>
+    (function first() {
+        fetch(`/twovtwoscores`, {
+            method: "GET"
+        }).then(res => res.text())
+        .then(body => {
+            scores = body.split(' ');
+            if (scores.length == 4) {
+                document.getElementById('hKills').stepUp(parseInt(scores[0]));
+                document.getElementById('tKills').stepUp(parseInt(scores[1]));
+                document.getElementById('o1Kills').stepUp(parseInt(scores[2]));
+                document.getElementById('o2Kills').stepUp(parseInt(scores[3]));
+            }
+            console.log('Success during first.');
+        }).catch(err => {
+            console.log(`Error during first: ${err}`);
+        })
+    })();
+
+    function add(id) {
+        document.getElementById(id).stepUp(1);
+    }
+
+    function sub(id) {
+        document.getElementById(id).stepDown(1);
+    }
+
+    function reset() {
+        try {
+            fetch(`/post/reset`, {
+                method: "GET"
+            }).then(res => {
+                console.log('2v2 reset success.');
+                document.getElementById('hKills').value = 0;
+                document.getElementById('tKills').value = 0;
+                document.getElementById('o1Kills').value = 0;
+                document.getElementById('o2Kills').value = 0;
+            }).catch(err => {
+                console.log('2v2 reset failed.');
+            });
+        } catch (err) {
+            console.log(`Error during 2v2 reset: ${err}`);
+        }
+    }
+
+    function update() {
+        try {
+            fetch(`/post/${document.getElementById('hKills').value}/${document.getElementById('tKills').value}/${document.getElementById('o1Kills').value}/${document.getElementById('o2Kills').value}`, {
+                method: "GET"
+            }).then(res => {
+                console.log('2v2 update success.');
+            }).catch(err => {
+                console.log('2v2 update failed.')
+            });
+        } catch (err) {
+            console.log(`Error during sub function: ${err}`);
+        }
+    }
+
+    setInterval(update, 15000);
+</script>
+
+</body>
+</html>

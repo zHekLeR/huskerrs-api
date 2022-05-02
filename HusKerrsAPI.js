@@ -593,7 +593,11 @@ let game_modes = {
   'br_dmz_playlist_wz325/rbrthbmo_quads': 'Rebirth Reinforced Quads',
   'br_dmz_playlist_wz325/rbrthbmo_trios': 'Rebirth Reinforced Trios',
   'br_dmz_playlist_wz325/rbrthbmo_duos': 'Rebirth Reinforced Duos',
-  'br_dmz_playlist_wz325/rbrthbmo_solos': 'Rebirth Reinforced Solos'
+  'br_dmz_playlist_wz325/rbrthbmo_solos': 'Rebirth Reinforced Solos',
+  'br_dbd_playlist_wz330/cal_iron_quads': 'Caldera Iron Trial Quads',
+  'br_dbd_playlist_wz330/cal_iron_trios': 'Caldera Iron Trial Trios',
+  'br_dbd_playlist_wz330/cal_iron_duos': 'Caldera Iron Trial Duos',
+  'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos'
 };
 
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";

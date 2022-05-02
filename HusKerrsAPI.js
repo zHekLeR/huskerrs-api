@@ -1538,7 +1538,7 @@ async function gamemodes(username) {
 // Pull number of semtex kills from COD API - only for HusK currently.
 async function semtex() {
   try {
-    let data = await lifetime('HusKerrs, uno');
+    let data = await lifetime('HusKerrs', 'uno');
     let semtex = data.lifetime.itemData.lethals['equip_semtex'].properties.kills;
     return `${semtex} kills with semtex huskKing`;
   } catch (err) {

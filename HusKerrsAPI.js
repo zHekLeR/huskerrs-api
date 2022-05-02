@@ -1039,7 +1039,7 @@ app.get('/resetmaps/:user', async (request, response) => {
       return;
     }
     let client = await pool.connect();
-    await client.query(`UPDATE customs SET maps = '{"placement": [], "kills": []}'::json' WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    await client.query(`UPDATE customs SET maps = '{"placement": [], "kills": []}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
     client.release();
     response.send(`Maps for ${request.params.user} have been reset.`);
   } catch (err) {

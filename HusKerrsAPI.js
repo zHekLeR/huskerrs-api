@@ -535,7 +535,7 @@ bot.on('chat', async (channel, tags, message) => {
 async function tvtscores(channel) {
   try {
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM twovtwo WHERE user_id = '${channel}';`);
+    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel}';`);
     client.release();
     let us = res.rows[0].hkills + res.rows[0].tkills;
     let opp = res.rows[0].o1kills + res.rows[0].o2kills;
@@ -787,7 +787,7 @@ app.get ('/twovtwoscores', async (request, response) => {
     if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = 'HusKerrs';`);
+    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = 'huskerrs';`);
     client.release();
 
     response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills}`);
@@ -801,10 +801,10 @@ app.get ('/twovtwoscores', async (request, response) => {
 // Post
 app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
-    if (!userIds['HusKerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'HusKerrs';`);
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'huskerrs';`);
     client.release();
 
     response.sendStatus(200);
@@ -818,10 +818,10 @@ app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => 
 // Reset
 app.get('/post/reset', async (request, response) => {
   try {
-    if (!userIds['HusKerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = 'HusKerrs';`);
+    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = 'huskerrs';`);
     client.release();
 
     response.sendStatus(200);

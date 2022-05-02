@@ -532,10 +532,6 @@ bot.on('chat', async (channel, tags, message) => {
   }
 });
 
-if (userIds['huskerrs']["two_v_two"]) {
-  tvtInt.push(setInterval(function() {tvtscores('huskerrs')}, 30000))
-}
-
 async function tvtscores(channel) {
   try {
     let client = await pool.connect();
@@ -1728,6 +1724,10 @@ async function brookescribers() {
         console.log(`Match intervals: ${err}`);
       }
     }, 300000);
+
+    if (userIds['huskerrs']["two_v_two"]) {
+      tvtInt.push(setInterval(function() {tvtscores('huskerrs')}, 30000))
+    }
 
     // Release client.
     client.release();

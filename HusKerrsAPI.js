@@ -846,6 +846,7 @@ app.get('/customson/:user', async (request, response) => {
       userIds[request.params.user.toLowerCase()] = { user_id: request.params.user.toLowerCase(), customs: true };
       response.send(`Added ${request.params.user} to database and enabled customs.`);
     } else if (userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs already enabled for ${request.params.user}.`);
       return;
     } else {
       client = await pool.connect();
@@ -865,6 +866,7 @@ app.get('/customson/:user', async (request, response) => {
 app.get('/customsoff/:user', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -883,6 +885,7 @@ app.get('/customsoff/:user', async (request, response) => {
 app.get('/setmaps/:user/:count', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -900,6 +903,7 @@ app.get('/setmaps/:user/:count', async (request, response) => {
 app.get('/setplacement/:user/:placement', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -917,6 +921,7 @@ app.get('/setplacement/:user/:placement', async (request, response) => {
 app.get('/addmap/:user/:place/:kills', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -959,6 +964,7 @@ app.get('/addmap/:user/:place/:kills', async (request, response) => {
 app.get('/removemap/:user', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -979,6 +985,7 @@ app.get('/removemap/:user', async (request, response) => {
 app.get('/mc/:user', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -1002,6 +1009,7 @@ app.get('/mc/:user', async (request, response) => {
 app.get('/score/:user', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();
@@ -1036,6 +1044,7 @@ app.get('/score/:user', async (request, response) => {
 app.get('/resetmaps/:user', async (request, response) => {
   try {
     if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
       return;
     }
     let client = await pool.connect();

@@ -534,9 +534,11 @@ bot.on('chat', async (channel, tags, message) => {
 
 async function tvtscores(channel) {
   try {
+    console.log(channel);
     let client = await pool.connect();
     let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel}';`);
     client.release();
+    console.log(res.rows);
     let us = res.rows[0].hkills + res.rows[0].tkills;
     let opp = res.rows[0].o1kills + res.rows[0].o2kills;
     bot.say(channel, `${us} - ${opp} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);

@@ -345,7 +345,7 @@ bot.on('chat', async (channel, tags, message) => {
         }
         res.rows[0].maps.placement.push(placement);
         res.rows[0].maps.kills.push(kills);
-        await client.query(`UPDATE customs SET maps = '{"placement":${'[' + res.rows[0].maps.placement.join(',') + ']'},"kills":${'[' + res.rows[0].maps.kills.join(',') + ']'}}' WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         if (placement > 3 && placement < 21) {
           placement = `${placement}th`;
@@ -358,7 +358,7 @@ bot.on('chat', async (channel, tags, message) => {
         } else {
           placement = `${placement}th`;
         }
-        bot.say(channel, `Team HusKerrs got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
+        bot.say(channel, `Team ${channel} got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
         break;
 
       case '!removemap':
@@ -416,7 +416,7 @@ bot.on('chat', async (channel, tags, message) => {
       case '!resetmaps':
         if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
         client = await pool.connect();
-        await client.query(`UPDATE customs SET maps = '{"placement":[],"kills":[]}' WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET maps = '{"placement":[],"kills":[]}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         bot.say(channel, `Maps have been reset.`);
         break;
@@ -829,6 +829,222 @@ app.get('/post/reset', async (request, response) => {
   } catch (err) {
     console.log(`Error during 2v2 reset: ${err}`);
     response.sendStatus(500);
+  }
+});
+
+
+// Customs on.
+app.get('/customson/:user', async (request, response) => {
+  try {
+    let client;
+    if (!userIds[request.params.user.toLowerCase()]) {
+      console.log(`Adding user: ${request.params.user}`);
+      client = await pool.connect();
+      await client.query(`INSERT INTO allusers(user_id, customs, thruweb) VALUES('${request.params.user.toLowerCase()}', true, true)`);
+      await client.query(`INSERT INTO customs VALUES('{"maps": [], "map_count": 0, "multipliers": '0 0', user_id = '${request.params.user.toLowerCase()}'}'::json);`);
+      client.release();
+      userIds[request.params.user.toLowerCase()] = { user_id: request.params.user.toLowerCase(), customs: true };
+      response.send(`Added ${request.params.user} to database and enabled customs.`);
+    } else if (userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    } else {
+      client = await pool.connect();
+      await client.query(`UPDATE allusers SET customs = true WHERE user_id = '${request.params.user.toLowerCase()}';`);
+      client.release();
+      userIds[request.params.user.toLowerCase()].customs = true;
+      response.send(`Customs enabled for ${request.params.user}.`);
+    }
+  } catch (err) {
+    console.log(`Error customson ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Customs off.
+app.get('/customsoff/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE allusers SET customs = false WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    userIds[request.params.user.toLowerCase()].customs = false;
+    response.send(`Customs disabled for ${request.params.user}.`);
+  } catch (err) {
+    console.log(`Error customsoff ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Set maps.
+app.get('/setmaps/:user/:count', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE customs SET map_count = ${request.params.count} WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Set maps to ${request.params.count} for ${request.params.user}.`);
+  } catch (err) {
+    console.log(`Error setmaps ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Set placement.
+app.get('/setplacement/:user/:placement', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE customs SET multipliers = '${decodeURIComponent(request.params.placement)}';`);
+    client.release();
+    response.send(`Set placement for ${request.params.user}.`);
+  } catch (err) {
+    console.log(`Error setplacement ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Add map.
+app.get('/addmap/:user/:place/:kills', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    let placement = parseInt(request.params.place);
+    let kills = parseInt(request.params.kills);
+    let multis = res.rows[0].multipliers.split(' ');
+    let score;
+    for (let i = multis.length/2; i >= 0; i--) {
+      if (placement >= parseInt(multis[2*i])) {
+        score = kills * parseFloat(multis[(2*i)+1]);
+        break;
+      }
+    }
+    res.rows[0].maps.placement.push(placement);
+    res.rows[0].maps.kills.push(kills);
+    await client.query(`UPDATE customs SET maps = '{"placement: '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    let place;
+    if (placement > 3 && placement < 21) {
+      place = `${placement}th`;
+    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '1') {
+      place = `${placement}st`;
+    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '2') {
+      place = `${placement}nd`;
+    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '3') {
+      place = `${placement}rd`;
+    } else {
+      place = `${placement}th`;
+    }
+    response.send(`Team ${request.params.user} got ${place} place with ${kills} kills for ${score.toFixed(2)} points!`);
+  } catch (err) {
+    console.log(`Error addmap ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Remove map.
+app.get('/removemap/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    res.rows[0].maps.placement.length = res.rows[0].maps.placement.length?res.rows[0].maps.placement.length-1:0;
+    res.rows[0].maps.kills.length = res.rows[0].maps.kills.length?res.rows[0].maps.kills.length-1:0;
+    await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Last map for ${request.params.user} has been removed.`);
+  } catch (err) {
+    console.log(`Error removemap ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Map count.
+app.get('/mc/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    let str;
+    if (res.rows[0].maps.placement.length == res.rows[0].map_count) {
+      str = `All maps have been played.`;
+    } else {
+      str = `Map ${res.rows[0].maps.placement.length + 1} of ${res.rows[0].map_count}`;
+    }
+    response.send(str);
+  } catch (err) {
+    console.log(`Error mapcount ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Score.
+app.get('/score/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    let score = [];
+    let total = 0;
+    let multis = res.rows[0].multipliers.split(' ');
+    for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
+      let placement;
+      for (let j = multis.length/2; j >= 0; j++) {
+        if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
+          placement = parseFloat(multis[2*j]);
+          break;
+        }
+      }
+      score.push(`Map ${i + 1}: ${(res.rows[0].maps.kills[i] * placement).toFixed(2)}`);
+      total += res.rows[0].maps.kills[i] * placement;
+    }
+    let str = score.join(' | ');
+    if (score.length < res.rows[0].map_count) str += score.length?` | Map ${score.length + 1}: TBD`:`Map 1: TBD`;
+    str += ` | Total: ${total.toFixed(2)} pts`;
+    response.send(str);
+  } catch (err) {
+    console.log(`Error score ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Reset maps.
+app.get('/resetmaps/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE customs SET maps = '{"placement": [], "kills": []}'::json' WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Maps for ${request.params.user} have been reset.`);
+  } catch (err) {
+    console.log(`Error resetmaps ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
   }
 });
 

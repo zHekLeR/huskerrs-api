@@ -494,26 +494,26 @@ bot.on('chat', async (channel, tags, message) => {
         break;
       
       case '!2v2on':
-        if (userIds[channel.substring(1)].two_v_two || !tags["mod"]) break;
+        if (userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
         }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`)
         client.release();
-        userIds[channel.substring(1)].two_v_two = true;
+        userIds[channel.substring(1)]["two_v_two"] = true;
         tvtInt.push(setInterval(function() {tvtscores(channel.substring(1))}, 30000));
         break;
 
       case '!2v2off':
-        if (!userIds[channel.substring(1)].two_v_two || !tags["mod"]) break;;
+        if (!userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) break;;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score true');
         }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET two_v_two = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
-        userIds[channel.substring(1)].two_v_two = false;
+        userIds[channel.substring(1)]["two_v_two"] = false;
         for (let i = 0; i < tvtInt.length; i++) {
           clearInterval(tvtInt[i]);
         }
@@ -532,7 +532,7 @@ bot.on('chat', async (channel, tags, message) => {
   }
 });
 
-if (userIds['huskerrs'].two_v_two) {
+if (userIds['huskerrs']["two_v_two"]) {
   tvtInt.push(setInterval(function() {tvtscores('huskerrs')}, 30000))
 }
 

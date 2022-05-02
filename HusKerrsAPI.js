@@ -776,7 +776,7 @@ app.get('/twovtwo', (request, response) => {
     response.sendFile(path.join(__dirname, 'two_v_two.html'));
   } catch (err) {
     console.log(err);
-    response.send(err);
+    response.send(err.message);
   }
 });
 
@@ -793,7 +793,7 @@ app.get ('/twovtwoscores', async (request, response) => {
     response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills}`);
   } catch (err) {
     console.log(`Error getting 2v2 scores: ${err}`);
-    response.send('Error');
+    response.send(err.message);
   }
 });
 

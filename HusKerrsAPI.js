@@ -842,7 +842,7 @@ app.get('/customson/:user', async (request, response) => {
       client = await pool.connect();
       await client.query(`INSERT INTO allusers(user_id, customs, thruweb) VALUES('${request.params.user.toLowerCase()}', true, true)`);
       await client.query(`INSERT INTO customs(maps, map_count, multipliers, user_id) VALUES('{"placement": [], "kills": []}'::json, 0, '0 0', '${request.params.user.toLowerCase()}');`);
-      client.release();
+      client.release(); 
       userIds[request.params.user.toLowerCase()] = { user_id: request.params.user.toLowerCase(), customs: true };
       response.send(`Added ${request.params.user} to database and enabled customs.`);
     } else if (userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {

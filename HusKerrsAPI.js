@@ -833,6 +833,23 @@ app.get('/post/reset', async (request, response) => {
 });
 
 
+// Pause scores
+app.get('/tvtpause', (request, response) => {
+  try {
+    if (tvtInt.length) {
+      clearInterval(tvtInt[0]);
+      tvtInt = [];
+    } else {
+      tvtInt.push(setInterval(function(){tvtscores('huskerrs')}, 30000));
+    }
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(`Error during 2v2 pause: ${err}`);
+    response.sendStatus(500);
+  }
+});
+
+
 // Customs on.
 app.get('/customson/:user', async (request, response) => {
   try {

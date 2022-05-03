@@ -504,6 +504,7 @@ bot.on('chat', async (channel, tags, message) => {
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = true;
         tvtInt.push(setInterval(function() {tvtscores(channel.substring(1))}, 30000));
+        bot.say(channel, `HusKerrs' official scorekeeper is esSpyderMonkey. Make sure to thank him for the updates!`);
         break;
 
       case '!2v2off':

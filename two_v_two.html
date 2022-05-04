@@ -4,7 +4,7 @@
 
 <h1>HusKerrs' 2v2 Counter</h1>
 <p></p>
-<button id="pause" onclick="pause()">Pause</button>
+<button id="pause" onclick="pause()">Pause</button><br><button id="send" onclick="sendScore()">Send Scores</button>
 <br><br>
 <input type="text" readonly="true" value="HusKerrs" size="8" style="text-align:center;"> Kills: <button onclick="add('hKills')">+</button> <sub id="hKills" style="font-size:18px;">0</sub> <button onclick="sub('hKills')">-</button><div>
 <input type="text" placeholder="Teammate" size="8" style="text-align:center;"></input> Kills: <button onclick="add('tKills')">+</button> <sub id="tKills" style="font-size:18px;">0</sub> <button onclick="sub('tKills')">-</button>
@@ -43,7 +43,7 @@
             });
             console.log('2v2 update success.');
         } catch (err) {
-            if (err.message.includes('not enabled')) {
+            if (err.message.includes('not enabled') && sInt) {
                 clearInterval(sInt);
             }
             console.log(`Error during update function: ${err}`);
@@ -51,6 +51,20 @@
     }
 
     sInt = setInterval(update, 15000);
+
+    function sendScore() {
+        try {
+            fetch(`/send/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
+                method: "GET"
+            });
+            console.log('2v2 send success.');
+        } catch (err) {
+            if (err.message.includes('not enabled') && sInt) {
+                clearInterval(sInt);
+            }
+            console.log(`Error during send function: ${err}`);
+        }
+    }
 
     function add(id) {
         document.getElementById(id).innerHTML = parseInt(document.getElementById(id).innerHTML) + 1;

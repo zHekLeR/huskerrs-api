@@ -851,6 +851,25 @@ app.get('/tvtpause', (request, response) => {
 });
 
 
+// Receive scores
+app.get('/send/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
+  try {
+    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+
+    let client = await pool.connect();
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'huskerrs';`);
+    client.release();
+
+    await tvtscores('huskerrs');
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(`Error during send: ${err}`);
+    response.sendStatus(500);
+  }
+})
+
+
 // Customs on.
 app.get('/customson/:user', async (request, response) => {
   try {

@@ -54,6 +54,8 @@
 
     function sendScore() {
         try {
+            document.getElementById("send").disabled = true;
+            setTimeout(function() {document.getElementById("send").disabled = false;}, 1000);
             fetch(`/send/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
                 method: "GET"
             });

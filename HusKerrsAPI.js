@@ -522,6 +522,11 @@ bot.on('chat', async (channel, tags, message) => {
         tvtInt = [];
         break;
 
+      case '!pred':
+        if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
+        bot.say(channel, '!jam PepegaPhone  peepoGamble  DinkDonk')
+        break;
+
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1) && tags["username"] !== "zhekler") break;
         bot.say(channel, 'peepoLeave');

@@ -546,7 +546,7 @@ async function tvtscores(channel) {
     client.release();
     let us = res.rows[0].hkills + res.rows[0].tkills;
     let opp = res.rows[0].o1kills + res.rows[0].o2kills;
-    bot.say(channel, `${us} - ${opp} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"} | Thank esSpyderMonkey for scorekeeping`);
+    bot.say(channel, `${us} - ${opp} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
   } catch (err) {
     console.log(`Error during tvtscores: ${err}`);
   }

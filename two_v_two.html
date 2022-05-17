@@ -24,10 +24,10 @@
         .then(body => {
             scores = body.split(' ');
             if (scores.length == 4) {
-                document.getElementById('hKills').stepUp(parseInt(scores[0]));
-                document.getElementById('tKills').stepUp(parseInt(scores[1]));
-                document.getElementById('o1Kills').stepUp(parseInt(scores[2]));
-                document.getElementById('o2Kills').stepUp(parseInt(scores[3]));
+                document.getElementById('hKills').innerHTML = parseInt(scores[0]);
+                document.getElementById('tKills').innerHTML = parseInt(scores[1]);
+                document.getElementById('o1Kills').innerHTML = parseInt(scores[2]);
+                document.getElementById('o2Kills').innerHTML = parseInt(scores[3]);
             }
             console.log('Success during first.');
         }).catch(err => {

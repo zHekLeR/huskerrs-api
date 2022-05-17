@@ -509,9 +509,7 @@ bot.on('chat', async (channel, tags, message) => {
         }
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = true;
-        if (channel.substring(1) === 'huskerrs') {
-          tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
-        }
+        tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
         break;
 
       case '!2v2off':
@@ -523,10 +521,8 @@ bot.on('chat', async (channel, tags, message) => {
         await client.query(`UPDATE allusers SET two_v_two = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = false;
-        for (let i = 0; i < tvtInt.length; i++) {
-          clearInterval(tvtInt[channel.substring(1)]);
-          delete tvtInt[channel.substring(1)];
-        }
+        clearInterval(tvtInt[channel.substring(1)]);
+        delete tvtInt[channel.substring(1)];
         tvtInt = [];
         break;
 

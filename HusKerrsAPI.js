@@ -555,7 +555,7 @@ async function tvtscores(channel) {
   } catch (err) {
     console.log(`Error during tvtscores: ${err}`);
   }
-}
+} 
 
 // Twitch bot subscription handler.
 bot.on('subscription', (channel, username, method, message, userstate) => {

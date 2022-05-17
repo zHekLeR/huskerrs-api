@@ -804,7 +804,8 @@ app.get('/twovtwo/:channel', (request, response) => {
       if (err) {
         throw new Error(err.message);
       }
-      data.replace('HusKerrs', request.params.channel);
+
+      data = data.replace(/HusKerrs/g, request.params.channel);
       response.send(data);
     });
   } catch (err) {

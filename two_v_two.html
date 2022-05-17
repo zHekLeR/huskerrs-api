@@ -62,7 +62,7 @@
             });
             console.log('2v2 send success.');
         } catch (err) {
-            if (err.message.includes('not enabled') && sInt) {
+            if (sInt) {
                 clearInterval(sInt);
             }
             console.log(`Error during send function: ${err}`);

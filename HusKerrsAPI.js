@@ -498,6 +498,8 @@ bot.on('chat', async (channel, tags, message) => {
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
           bot.say(channel, `HusKerrs' official scorekeeper is esSpyderMonkey. Make sure to thank him for the updates!`);
+        } else {
+          bot.say(channel, 'Score recording enabled.');
         }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`);
@@ -516,6 +518,8 @@ bot.on('chat', async (channel, tags, message) => {
         if ((!userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score true');
+        } else {
+          bot.say(channel, 'Score recording disabled.');
         }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET two_v_two = false WHERE user_id = '${channel.substring(1)}';`);

@@ -80,7 +80,7 @@
 
     function pause() {
         try {
-            fetch(`/tvtpause/${document.getElementById('user').value.toLowerCase()}`, {
+            fetch(`/tvtpause/${document.getElementById("user").value.toLowerCase()}`, {
                 method: "GET"
             }).then(res => {
                 let text = document.getElementById("pause");

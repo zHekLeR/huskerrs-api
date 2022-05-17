@@ -6,7 +6,7 @@
 <p></p>
 <button id="pause" onclick="pause()">Pause</button><br><button id="send" onclick="sendScore()">Send Scores</button>
 <br><br>
-<input type="text" readonly="true" value="HusKerrs" size="8" style="text-align:center;"> Kills: <button onclick="add('hKills')">+</button> <sub id="hKills" style="font-size:18px;">0</sub> <button onclick="sub('hKills')">-</button><div>
+<input id='user' type="text" readonly="true" value="HusKerrs" size="8" style="text-align:center;"> Kills: <button onclick="add('hKills')">+</button> <sub id="hKills" style="font-size:18px;">0</sub> <button onclick="sub('hKills')">-</button><div>
 <input type="text" placeholder="Teammate" size="8" style="text-align:center;"></input> Kills: <button onclick="add('tKills')">+</button> <sub id="tKills" style="font-size:18px;">0</sub> <button onclick="sub('tKills')">-</button>
 <br>
 <br>
@@ -17,7 +17,8 @@
 
 <script>
     (function first() {
-        fetch(`/twovtwoscores`, {
+        let channel = document.getElementById('user').value;
+        fetch(`/twovtwoscores/${channel.toLowerCase()}`, {
             method: "GET"
         }).then(res => res.text())
         .then(body => {
@@ -38,7 +39,7 @@
 
     function update() {
         try {
-            fetch(`/post/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
+            fetch(`/post/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
                 method: "GET"
             });
             console.log('2v2 update success.');
@@ -56,7 +57,7 @@
         try {
             document.getElementById("send").disabled = true;
             setTimeout(function() {document.getElementById("send").disabled = false;}, 1000);
-            fetch(`/send/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
+            fetch(`/send/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
                 method: "GET"
             });
             console.log('2v2 send success.');
@@ -79,7 +80,7 @@
 
     function pause() {
         try {
-            fetch(`/tvtpause`, {
+            fetch(`/tvtpause/${document.getElementById('user').value.toLowerCase()}`, {
                 method: "GET"
             }).then(res => {
                 let text = document.getElementById("pause");
@@ -94,7 +95,7 @@
 
     function reset() {
         try {
-            fetch(`/post/reset`, {
+            fetch(`/post/${document.getElementById('user').value.toLowerCase()}/reset`, {
                 method: "GET"
             }).then(res => {
                 console.log('2v2 reset success.');

@@ -102,7 +102,7 @@ const bot = new tmi.Client({
   channels: [ ]
 });
 
-let tvtInt = [];
+let tvtInt = {};
 
 // Logs the Twitch bot being initialized.
 bot.on('logon', () => {
@@ -497,14 +497,19 @@ bot.on('chat', async (channel, tags, message) => {
         if ((userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
+          bot.say(channel, `HusKerrs' official scorekeeper is esSpyderMonkey. Make sure to thank him for the updates!`);
         }
         client = await pool.connect();
-        await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`)
-        await client.query(`UPDATE twovtwo SET hkills = 0, tkills = 0, o1kills = 0, o2kills = 0 WHERE userid = '${channel.substring(1)}';`)
+        await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`);
+        let rows = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel.substring(1)}';`);
+        if (rows.rows.length) {
+          await client.query(`UPDATE twovtwo SET hkills = 0, tkills = 0, o1kills = 0, o2kills = 0 WHERE userid = '${channel.substring(1)}';`);
+        } else {
+          await client.query(`INSERT INTO twovtwo(hkills, tkills, o1kills, o2kills, userid) VALUES (0, 0, 0, 0, '${channel.substring(1)}');`)
+        }
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = true;
-        tvtInt.push(setInterval(function() {tvtscores(channel.substring(1))}, 30000));
-        bot.say(channel, `HusKerrs' official scorekeeper is esSpyderMonkey. Make sure to thank him for the updates!`);
+        tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
         break;
 
       case '!2v2off':
@@ -524,7 +529,7 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!pred':
         if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
-        bot.say(channel, '!jam PepegaPhone  peepoGamble  DinkDonk')
+        bot.say(channel, '!jam PREDICTION peepoGamble DinkDonk')
         break;
 
       case '!zhekleave':
@@ -788,13 +793,31 @@ app.get('/twovtwo', (request, response) => {
 });
 
 
-// Get 2v2 scores.
-app.get ('/twovtwoscores', async (request, response) => {
+// 2v2
+app.get('/twovtwo/:channel', (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    fs.readFile(path.join(__dirname, 'two_v_two.html'), 'utf8', (err, data) => {
+      if (err) {
+        throw new Error(err.message);
+      }
+      data.replace('HusKerrs', request.params.channel);
+      response.send(data);
+    });
+  } catch (err) {
+    console.log(err);
+    response.send(err.message);
+  }
+});
+
+
+// Get 2v2 scores.
+app.get ('/twovtwoscores/:channel', async (request, response) => {
+  try {
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = 'huskerrs';`);
+    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${request.params.channel}';`);
     client.release();
 
     response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills}`);
@@ -806,12 +829,12 @@ app.get ('/twovtwoscores', async (request, response) => {
 
 
 // Post
-app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
+app.get('/post/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'huskerrs';`);
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.params.channel}';`);
     client.release();
 
     response.sendStatus(200);
@@ -823,12 +846,12 @@ app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => 
 
 
 // Reset
-app.get('/post/reset', async (request, response) => {
+app.get('/post/:channel/reset', async (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = 'huskerrs';`);
+    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.params.channel}';`);
     client.release();
 
     response.sendStatus(200);
@@ -840,13 +863,13 @@ app.get('/post/reset', async (request, response) => {
 
 
 // Pause scores
-app.get('/tvtpause', (request, response) => {
+app.get('/tvtpause/:channel', (request, response) => {
   try {
-    if (tvtInt.length) {
-      clearInterval(tvtInt[0]);
-      tvtInt = [];
+    if (tvtInt[request.params.channel]) {
+      clearInterval(tvtInt[request.params.channel]);
+      delete tvtInt[request.params.channel];
     } else {
-      tvtInt.push(setInterval(function(){tvtscores('huskerrs')}, 30000));
+      tvtInt[request.params.channel] = setInterval(function(){tvtscores(request.params.channel)}, 30000);
     }
     response.sendStatus(200);
   } catch (err) {
@@ -857,15 +880,15 @@ app.get('/tvtpause', (request, response) => {
 
 
 // Receive scores
-app.get('/send/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
+app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'huskerrs';`);
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.params.channel}';`);
     client.release();
 
-    await tvtscores('huskerrs');
+    await tvtscores(request.params.channel);
 
     response.sendStatus(200);
   } catch (err) {
@@ -1985,6 +2008,10 @@ async function brookescribers() {
         // @ts-ignore
         bot.channels.push(temp[i].user_id);
         gcd[temp[i].user_id] = { };
+        
+        if (userIds[temp[i].user_id]["two_v_two"]) {
+          tvtInt[temp[i].user_id] = setInterval(function() {tvtscores(temp[i].user_id)}, 30000);
+        }
       }
     };
 
@@ -1996,10 +2023,6 @@ async function brookescribers() {
         console.log(`Match intervals: ${err}`);
       }
     }, 300000);
-
-    if (userIds['huskerrs']["two_v_two"]) {
-      tvtInt.push(setInterval(function() {tvtscores('huskerrs')}, 30000))
-    }
 
     // Release client.
     client.release();

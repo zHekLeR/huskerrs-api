@@ -509,7 +509,9 @@ bot.on('chat', async (channel, tags, message) => {
         }
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = true;
-        tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
+        if (channel.substring(1) === 'huskerrs') {
+          tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
+        }
         break;
 
       case '!2v2off':
@@ -522,7 +524,8 @@ bot.on('chat', async (channel, tags, message) => {
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = false;
         for (let i = 0; i < tvtInt.length; i++) {
-          clearInterval(tvtInt[i]);
+          clearInterval(tvtInt[channel.substring(1)]);
+          delete tvtInt[channel.substring(1)];
         }
         tvtInt = [];
         break;

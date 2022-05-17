@@ -608,7 +608,8 @@ let game_modes = {
   'br_dbd_playlist_wz330/cal_iron_quads': 'Caldera Iron Trial Quads',
   'br_dbd_playlist_wz330/cal_iron_trios': 'Caldera Iron Trial Trios',
   'br_dbd_playlist_wz330/cal_iron_duos': 'Caldera Iron Trial Duos',
-  'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos'
+  'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos',
+  'br_mendota_playlist_wz330': 'Operation Monarch'
 };
 
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";
@@ -872,10 +873,11 @@ app.get('/tvtpause/:channel', (request, response) => {
     if (tvtInt[request.params.channel]) {
       clearInterval(tvtInt[request.params.channel]);
       delete tvtInt[request.params.channel];
+      response.sendStatus(200);
     } else {
       tvtInt[request.params.channel] = setInterval(function(){tvtscores(request.params.channel)}, 30000);
+      response.sendStatus(201);
     }
-    response.sendStatus(200);
   } catch (err) {
     console.log(`Error during 2v2 pause: ${err}`);
     response.sendStatus(500);

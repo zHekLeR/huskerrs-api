@@ -84,7 +84,7 @@
                 method: "GET"
             }).then(res => {
                 let text = document.getElementById("pause");
-                text.innerHTML = text.innerHTML==='Pause'?'Resume':'Pause';
+                text.innerHTML = res.status == 200?'Resume':'Pause';
             }).catch(err => {
                 console.log(`2v2 pause failed.`);
             })

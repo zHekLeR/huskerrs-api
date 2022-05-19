@@ -1163,7 +1163,7 @@ app.get('/brookescribers', async (request, response) => {
 // Get user's stats.
 app.get('/stats/:id', async (req, response) => {
   try {
-    response.send(await stats(req.params.id, 'uno'));
+    response.send(await stats(encodeURIComponent(req.params.id), 'uno'));
   } catch (err) {
     console.log(`Error while getting other stats: ${err}`);
     response.send(`Error while getting stats.`)
@@ -1186,7 +1186,7 @@ async function stats(username, platform) {
     let kills = data.lifetime.mode.br.properties.kills;
 
     // Return response.
-    return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
+    return `${data.username} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
 
   } catch (err) {
     try {

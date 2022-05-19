@@ -529,6 +529,11 @@ bot.on('chat', async (channel, tags, message) => {
         delete tvtInt[channel.substring(1)];
         tvtInt = [];
         break;
+      
+      case '!check':
+        if (channel.substring(1) !== 'huskerrs') break;
+        bot.say(channel, await stats(encodeURIComponent(message.substring(message.indexOf(' ') + 1))));
+        break;
 
       case '!pred':
         if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
@@ -1199,7 +1204,7 @@ async function stats(username, platform) {
       return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
     } catch (err) {
       console.log(`Stats: ${err}`);
-      return;
+      return err.message.includes('permitted')?'Account is private.':'Error getting stats.';
     }
   }
 };

@@ -89,6 +89,8 @@ discord.on("messageCreate", (message) => {
 // Log in to the Discord bot.
 discord.login(process.env.TOKEN);
 
+const vips = 'neosog, guppii, lululuvely, officialgloriouspcgr, tannerslays, itsthiccchick, craftyjoseph, thanks4dying, mateocrafter1304, hannahnicole4300, stormen, thomdez, fuzwuz, cklaas, triv, zxch, airy_z, bumbobboi, twisttedt, meerko, confire, geesh, missnaruka, gmoe003, femsteph, gdolphn, patriotic, rknhd, rogue_frank, crowder, vileagony, safecojoe, biazar, notjustjohnny, meesterhauns, kurt, midone, muffinwithnobrim, mikedrop39, bronny, swagg, stableronaldo, willo7891, hitstreak, scump, n8brotherwolf, cloakzy, chickitv, karma, soapwingo, joewo, hoffensnieg, deeksjr, tiensochill, gloliva, destroy, its_iron, imr_sa, ochocinco, magalonn, artesianbuilds, azsnakeb1t3, hasham_33, alextumay, pat_o_, nicewigg, 1chilldawg, hideouts_, scummn, momskerrs, p90queen, drawrj, jefedejeff, methodz, valorash_, tyrannymedia, lablakers24, antdavis3, almxnd, jgod_gaming, mafiia_niko, liamferrari, timthetatman, feldubb, holyman, kentb57, l3xu55, bbreadman, sinnerrrr, aydan, unrational, wagnificent, davidtheslayerrr, tommey, zsmit, drakota, mvs_11, ndolok, janegoatt'.split(', ');
+
 // Create the Twitch bot.
 const bot = new tmi.Client({
 	connection: {
@@ -531,7 +533,7 @@ bot.on('chat', async (channel, tags, message) => {
         break;
       
       case '!check':
-        if (channel.substring(1) !== 'huskerrs') break;
+        if (channel.substring(1) !== 'huskerrs' || (!tags['mod'] || !vips.includes(tags['username']))) break;
         bot.say(channel, await stats(encodeURIComponent(message.substring(message.indexOf(' ') + 1))));
         break;
 

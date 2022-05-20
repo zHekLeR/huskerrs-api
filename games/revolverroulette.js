@@ -92,17 +92,68 @@ async function revolverrouletteLb() {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`(SELECT * FROM revolverroulette WHERE survive = (SELECT MAX (survive) FROM revolverroulette) LIMIT 1) UNION ALL (SELECT * FROM revolverroulette WHERE die = (SELECT MAX (die) FROM revolverroulette) LIMIT 1) ORDER BY survive DESC;`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE survive = (SELECT MAX (survive) FROM revolverroulette) LIMIT 3) ORDER BY survive DESC;`);
     let top = res.rows;
     client.release();
     
-    // One user has the most survivals and deaths.
-    if (top.length < 2) {
-      top.push(top[0]);
+    // Put em together.
+    let str = [];
+    for (let i = 0; i < top.length; i++) {
+        str.push(`${top[i].user_id}: ${top[i].survive}`);
     }
 
     // Return response.
-    return `Revolver Roulette Leaderboard | Top Survivals: ${top[0].user_id} (${top[0].survive}) | Top Deaths: ${top[1].user_id} (${top[1].die})`;
+    return `Revolver Roulette Leaderboard: Survivals |${str.join(' | ')}`;
+  } catch (err) {
+    console.log(err);
+    return;
+  }
+};
+
+
+// Function to retrieve the leaderboard for Revolver Roulette.
+async function revolverrouletteLbDie() {
+  try {
+
+    // Pull users from the database.
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE die = (SELECT MAX (die) FROM revolverroulette) LIMIT 3) ORDER BY die DESC;`);
+    let top = res.rows;
+    client.release();
+    
+    // Put em together.
+    let str = [];
+    for (let i = 0; i < top.length; i++) {
+        str.push(`${top[i].user_id}: ${top[i].die}`);
+    }
+
+    // Return response.
+    return `Revolver Roulette Leaderboard: Deaths |${str.join(' | ')})`;
+  } catch (err) {
+    console.log(err);
+    return;
+  }
+};
+
+
+// Function to retrieve the leaderboard for Revolver Roulette.
+async function revolverrouletteLbRatio() {
+  try {
+
+    // Pull users from the database.
+    let client = await pool.connect();
+    let res = await client.query(`SELECT user_id, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM revolverroulette ORDER BY die DESC LIMIT 3;`);
+    let top = res.rows;
+    client.release();
+    
+    // Put em together.
+    let str = [];
+    for (let i = 0; i < top.length; i++) {
+        str.push(`${top[i].user_id}: ${top[i].percent}%`);
+    }
+
+    // Return response.
+    return `Revolver Roulette Leaderboard: Survival Ratio |${str.join(' | ')})`;
   } catch (err) {
     console.log(err);
     return;
@@ -159,4 +210,4 @@ async function allTimes(id) {
 }
 
 
-export { revolverroulette, revolverrouletteScore, revolverrouletteLb, revolverrouletteTotals, allTimes };
+export { revolverroulette, revolverrouletteScore, revolverrouletteLb, revolverrouletteLbDie, revolverrouletteLbRatio, revolverrouletteTotals, allTimes };

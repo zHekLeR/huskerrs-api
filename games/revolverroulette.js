@@ -103,7 +103,7 @@ async function revolverrouletteLb() {
     }
 
     // Return response.
-    return `Revolver Roulette Leaderboard: Survivals |${str.join(' | ')}`;
+    return `Revolver Roulette Leaderboard: Survivals | ${str.join(' | ')}`;
   } catch (err) {
     console.log(err);
     return;
@@ -128,7 +128,7 @@ async function revolverrouletteLbDie() {
     }
 
     // Return response.
-    return `Revolver Roulette Leaderboard: Deaths |${str.join(' | ')})`;
+    return `Revolver Roulette Leaderboard: Deaths | ${str.join(' | ')})`;
   } catch (err) {
     console.log(err);
     return;
@@ -153,7 +153,7 @@ async function revolverrouletteLbRatio() {
     }
 
     // Return response.
-    return `Revolver Roulette Leaderboard: Survival Ratio |${str.join(' | ')})`;
+    return `Revolver Roulette Leaderboard: Survival Ratio | ${str.join(' | ')})`;
   } catch (err) {
     console.log(err);
     return;

@@ -1800,7 +1800,7 @@ async function update(matches, user, lastTimestamp) {
       deaths = matches[i].playerStats.deaths;
       
       // Set game mode.
-      game_mode = game_modes.contains(matches[i].mode)?game_modes[matches[i].mode]:matches[i].mode;
+      game_mode = game_modes.includes(matches[i].mode)?game_modes[matches[i].mode]:matches[i].mode;
 
       // Set gulag stats.
       gulag_kills = 0;

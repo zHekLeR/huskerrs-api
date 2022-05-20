@@ -142,7 +142,7 @@ async function revolverrouletteLbRatio() {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT user_id, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) ORDER BY percent DESC LIMIT 3;`);
+    let res = await client.query(`SELECT user_id, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) AS rr ORDER BY percent DESC LIMIT 3;`);
     let top = res.rows;
     client.release();
     

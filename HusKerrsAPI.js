@@ -181,6 +181,11 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, await revolverroulette.revolverrouletteLbRatio());
         break;
 
+      case '!rrlbratiolow':
+        if (!userIds[channel.substring(1)].revolverroulette) break;
+        bot.say(channel, await revolverroulette.revolverrouletteLbRatioLow());
+        break;
+
       case '!rrtotals':
         if (!userIds[channel.substring(1)].revolverroulette) break;
         bot.say(channel, await revolverroulette.revolverrouletteTotals());

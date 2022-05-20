@@ -142,14 +142,39 @@ async function revolverrouletteLbRatio() {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT user_id, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) AS rr ORDER BY percent DESC LIMIT 3;`);
+    let res = await client.query(`SELECT user_id, survive, die, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) AS rr ORDER BY percent DESC LIMIT 3;`);
     let top = res.rows;
     client.release();
     
     // Put em together.
     let str = [];
     for (let i = 0; i < top.length; i++) {
-        str.push(`${top[i].user_id}: ${top[i].percent}%`);
+        str.push(`${top[i].user_id}: ${top[i].percent}% in ${top[i].survive + top[i].die} rounds`);
+    }
+
+    // Return response.
+    return `Revolver Roulette Leaderboard: Survival Ratio | ${str.join(' | ')}`;
+  } catch (err) {
+    console.log(err);
+    return;
+  }
+};
+
+
+// Function to retrieve the leaderboard for Revolver Roulette.
+async function revolverrouletteLbRatioLow() {
+  try {
+
+    // Pull users from the database.
+    let client = await pool.connect();
+    let res = await client.query(`SELECT user_id, survive, die, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) AS rr ORDER BY percent ASC LIMIT 3;`);
+    let top = res.rows;
+    client.release();
+    
+    // Put em together.
+    let str = [];
+    for (let i = 0; i < top.length; i++) {
+        str.push(`${top[i].user_id}: ${top[i].percent}% in ${top[i].survive + top[i].die} rounds`);
     }
 
     // Return response.
@@ -210,4 +235,4 @@ async function allTimes(id) {
 }
 
 
-export { revolverroulette, revolverrouletteScore, revolverrouletteLb, revolverrouletteLbDie, revolverrouletteLbRatio, revolverrouletteTotals, allTimes };
+export { revolverroulette, revolverrouletteScore, revolverrouletteLb, revolverrouletteLbDie, revolverrouletteLbRatio, revolverrouletteLbRatioLow, revolverrouletteTotals, allTimes };

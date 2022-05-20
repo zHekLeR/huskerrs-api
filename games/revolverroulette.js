@@ -92,7 +92,7 @@ async function revolverrouletteLb() {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette WHERE survive = (SELECT MAX (survive) FROM revolverroulette) LIMIT 3) ORDER BY survive DESC;`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE survive = (SELECT MAX (survive) FROM revolverroulette LIMIT 3) ORDER BY survive DESC;`);
     let top = res.rows;
     client.release();
     
@@ -117,7 +117,7 @@ async function revolverrouletteLbDie() {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette WHERE die = (SELECT MAX (die) FROM revolverroulette) LIMIT 3) ORDER BY die DESC;`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE die = (SELECT MAX (die) FROM revolverroulette LIMIT 3) ORDER BY die DESC;`);
     let top = res.rows;
     client.release();
     

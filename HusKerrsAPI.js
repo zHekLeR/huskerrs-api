@@ -75,16 +75,22 @@ discord.once('ready', () => {
 // Loadout command for Discord.
 const prefix = "!loadout";
 discord.on("messageCreate", (message) => {
-  if (message.channel.id !== "775090169417826326") return;
-	if (message.content.startsWith(prefix)) {
-		try {
-		  message.author.send("HusKerrs' Loadouts (favorite guns at the top): https://www.kittr.gg/channel/HusKerrs/warzone\n"+
-		  "If you're having trouble accessing the loadout site, please DM @zHekLeR on Twitch or Discord.");
-		} catch (err) {
-			console.log(err);
-		}
-	}
+  if (message.channel.id === "775090169417826326") {
+    if (message.content.startsWith(prefix)) {
+      try {
+        message.author.send("HusKerrs' Loadouts (favorite guns at the top): https://www.kittr.gg/channel/HusKerrs/warzone\n"+
+        "If you're having trouble accessing the loadout site, please DM @zHekLeR on Twitch or Discord.");
+      } catch (err) {
+        console.log(err);
+      }
+    }
+	} else if (message.channel.id === "860699279017639936") {
+    if (message.content.indexOf('/ban ')) {
+      bot.say('huskerrs', message.content.substring(message.content.indexOf('/ban ')));
+    } 
+  }
 });
+
 
 // Log in to the Discord bot.
 discord.login(process.env.TOKEN);
@@ -1312,7 +1318,6 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     response.send(`Add match error.`);
   }
 });
-
 
 
 // Get user's last match info.

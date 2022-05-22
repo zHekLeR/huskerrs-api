@@ -299,7 +299,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!bvcd[tags["username"]] || bvcd[tags["username"]] < Date.now()) {
           bot.say(channel, await bigvanish.bigVanish(tags["display-name"]?tags["display-name"]:tags["username"]));
           rrcd[tags["username"]] = Date.now() + 15000;
-          if (tags["username"]!=='missladyj_') setTimeout(function() { bot.say(channel, `/untimeout ${tags["username"]}`); }, 3000);
+          setTimeout(function() { bot.say(channel, `/untimeout ${tags["username"]}`); }, 3000);
         }
         break;
 

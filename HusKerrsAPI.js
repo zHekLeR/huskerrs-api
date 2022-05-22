@@ -555,7 +555,7 @@ bot.on('chat', async (channel, tags, message) => {
       
       case '!check':
         if (channel.substring(1) !== 'huskerrs' || (!tags['mod'] && !vips.includes(tags['username']))) break;
-        bot.say(channel, await stats(encodeURIComponent(message.substring(message.indexOf(' ') + 1))));
+        bot.say(channel, await stats(message.substring(message.indexOf(' ') + 1)));
         console.log(message.substring(message.indexOf(' ') + 1));
         break;
 
@@ -1199,8 +1199,10 @@ app.get('/stats/:id', async (req, response) => {
 async function stats(username, platform) {
   try {
 
+    let uriUser = encodeURIComponent(username);
+
     // Get stats.
-    let data = await lifetime(username, platform);
+    let data = await lifetime(uriUser, platform);
 
     // Format stats.
     let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;

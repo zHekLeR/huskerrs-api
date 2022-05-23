@@ -689,6 +689,8 @@ function apiErrorHandling(error) {
                           return '404 - Not found. Incorrect username or platform? Misconfigured privacy settings?';
                       case 'Not permitted: rate limit exceeded':
                           return '429 - Too many requests. Try again in a few minutes.';
+                      case 'Not permitted: not allowed':
+                          return apiErrorMessage;
                       case 'Error from datastore':
                           return '500 - Internal server error. Request failed, try again.';
                       default:
@@ -699,6 +701,7 @@ function apiErrorHandling(error) {
                   return '401 - Unauthorized. Incorrect username or password.';
               case 403:
                   return '403 - Forbidden. You may have been IP banned. Try again in a few minutes.';
+                
               case 500:
                   return '500 - Internal server error. Request failed, try again.';
               case 502:
@@ -1186,7 +1189,7 @@ app.get('/brookescribers', async (request, response) => {
 // Get user's stats.
 app.get('/stats/:id', async (req, response) => {
   try {
-    response.send(await stats(encodeURIComponent(req.params.id), 'uno'));
+    response.send(await stats(req.params.id, 'uno'));
   } catch (err) {
     console.log(`Error while getting other stats: ${err}`);
     response.send(`Error while getting stats.`)
@@ -1202,6 +1205,12 @@ async function stats(username, platform) {
 
     // Get stats.
     let data = await lifetime(uriUser, platform);
+
+    if (data === 'Not permitted: not allowed') {
+      return 'Account is private.';
+    } else {
+      data = JSON.parse(data);
+    }
 
     // Format stats.
     let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;

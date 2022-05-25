@@ -701,7 +701,8 @@ function apiErrorHandling(error) {
                   return '401 - Unauthorized. Incorrect username or password.';
               case 403:
                   return '403 - Forbidden. You may have been IP banned. Try again in a few minutes.';
-                
+              case 404:
+                  return 'Account is set to private.';
               case 500:
                   return '500 - Internal server error. Request failed, try again.';
               case 502:
@@ -800,6 +801,9 @@ function lifetime(gamertag, platform) {
 
 // Create server.
 const app = express();
+app.use(express.json());
+import bodyParser from 'body-parser';
+let jsonParser = bodyParser.json();
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -819,7 +823,6 @@ app.get('/', (request, response) => {
 // 2v2
 app.get('/twovtwo', (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
     response.sendFile(path.join(__dirname, 'two_v_two.html'));
   } catch (err) {
     console.log(err);
@@ -831,7 +834,7 @@ app.get('/twovtwo', (request, response) => {
 // 2v2
 app.get('/twovtwo/:channel', (request, response) => {
   try {
-    if (!userIds[request.params.channel] || !userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel]) throw new Error(`zHekLeR bot not enabled in channel: ${request.params.channel}.`);
     fs.readFile(path.join(__dirname, 'two_v_two.html'), 'utf8', (err, data) => {
       if (err) {
         throw new Error(err.message);
@@ -856,7 +859,7 @@ app.get ('/twovtwoscores/:channel', async (request, response) => {
     let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${request.params.channel}';`);
     client.release();
 
-    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills}`);
+    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills} ${res.rows[0].tname} ${res.rows[0].o1name} ${res.rows[0].o2name} ${userIds[res.rows[0].userid] && userIds[res.rows[0].userid]["two_v_two"]} ${userIds[res.rows[0].tname] && userIds[res.rows[0].tname]["two_v_two"]} ${userIds[res.rows[0].o1name] && userIds[res.rows[0].o1name]["two_v_two"]} ${userIds[res.rows[0].o2name] && userIds[res.rows[0].o2name]["two_v_two"]} ${tvtInt[request.params.channel]?true:false}`);
   } catch (err) {
     console.log(`Error getting 2v2 scores: ${err}`);
     response.send(err.message);
@@ -870,13 +873,22 @@ app.get('/post/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
     if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.params.channel}';`);
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
+    }
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
+    }
+    if (userIds[request.get('tname')] && userIds[request.get('o2name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
+    }
     client.release();
 
     response.sendStatus(200);
   } catch (err) {
     console.log(`Error during 2v2 update: ${err}`);
-    response.send(`2v2 not enabled.`);
+    response.sendStatus(500);
   }
 });
 
@@ -893,6 +905,98 @@ app.get('/post/:channel/reset', async (request, response) => {
     response.sendStatus(200);
   } catch (err) {
     console.log(`Error during 2v2 reset: ${err}`);
+    response.sendStatus(500);
+  }
+});
+
+
+// Enable
+app.post('/post/:channel/enable', jsonParser, async (request, response) => {
+  try {
+    let status = request.body;
+    console.log(status);
+    console.log(request.headers);
+    let updates = [];
+
+    status['hStatus'] = userIds[request.get('hname')] && status['hStatus'];
+    status['tStatus'] = userIds[request.get('tname')] && status['tStatus'];
+    status['o1Status'] = userIds[request.get('o1name')] && status['o1Status'];
+    status['o2Status'] = userIds[request.get('o2name')] && status['o2Status'];
+
+    if (userIds[request.get('hname')] && userIds[request.get('hname')]["two_v_two"] !== status["hStatus"]) {
+      userIds[request.get('hname')]["two_v_two"] = status["hStatus"];
+      updates[request.get('hname')] = status["hStatus"];
+      if (status["hStatus"]) {
+        tvtInt[request.get('hname')] = setInterval(function(){ tvtscores(request.get('hname')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('hname')]);
+      }
+    }
+
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"] !== status["tStatus"]) {
+      userIds[request.get('tname')]["two_v_two"] = status["tStatus"];
+      updates[request.get('tname')] = status["tStatus"];
+      if (status["tStatus"]) {
+        tvtInt[request.get('tname')] = setInterval(function(){ tvtscores(request.get('tname')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('tname')]);
+      }
+    }  
+
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"] !== status["o1Status"]) {
+      userIds[request.get('o1name')]["two_v_two"] = status["o1Status"];
+      updates[request.get('o1name')] = status["o1Status"];
+      if (status["o1Status"]) {
+        tvtInt[request.get('o1name')] = setInterval(function(){ tvtscores(request.get('o1name')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('o1name')]);
+      }
+    }  
+    
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"] !== status["o2Status"]) {
+      userIds[request.get('o2name')]["two_v_two"] = status["o2Status"];
+      updates[request.get('o2name')] = status["o2Status"];
+      if (status["o2Status"]) {
+        tvtInt[request.get('o2name')] = setInterval(function(){ tvtscores(request.get('o2name')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('o2name')]);
+      }
+    }
+
+    status["needsUpdate"] = false;
+
+    response.status(200);
+
+    if (!updates) {
+      response.send(status);
+      return;
+    }
+
+    let str = '';
+    let keys = Object.keys(updates);
+    
+    let client = await pool.connect();
+
+    for (let i = 0; i < keys.length; i++) {
+      str += `('${keys[i]}'::text, ${updates[keys[i]]}::bool)${i + 1 === keys.length?'':', '}`;
+
+      if (keys[i] === 'huskerrs') { bot.say('huskerrs', `!enable !score ${!updates['huskerrs']}`)};
+      bot.say(keys[i], `Score reporting ${updates[keys[i]]?'enabled':'disabled'}`);
+
+      let rows = await client.query(`SELECT * FROM twovtwo WHERE userid = '${keys[i]}';`);
+      if (rows.rows.length) {
+        await client.query(`UPDATE twovtwo SET hkills = 0, tkills = 0, o1kills = 0, o2kills = 0 WHERE userid = '${keys[i]}';`);
+      } else {
+        await client.query(`INSERT INTO twovtwo(hkills, tkills, o1kills, o2kills, userid) VALUES (0, 0, 0, 0, '${keys[i]}');`)
+      }
+
+      await client.query(`UPDATE allusers SET two_v_two = ${updates[keys[i]]}::bool WHERE user_id = '${keys[i]}'::text;`)
+    }
+    client.release();
+
+    response.send(status);
+  } catch (err) {
+    console.log('Enable function: ' + err);
     response.sendStatus(500);
   }
 });

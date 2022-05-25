@@ -4,18 +4,22 @@
 
 <h1>HusKerrs' 2v2 Counter</h1>
 <p></p>
-<button id="pause" onclick="pause()">Pause</button><br><button id="send" onclick="sendScore()">Send Scores</button>
+<button id="pause" onclick="pause()">Pause</button><br><button id="send" onclick="sendScore()">Send Scores</button>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<button id="enable" onclick="enable()">Enable Scoring</button>&ensp;<sub id="scoring" style="color:red"></sub>
 <br><br>
-<input id='user' type="text" readonly="true" value="HusKerrs" size="8" style="text-align:center;"> Kills: <button onclick="add('hKills')">+</button> <sub id="hKills" style="font-size:18px;">0</sub> <button onclick="sub('hKills')">-</button><div>
-<input type="text" placeholder="Teammate" size="8" style="text-align:center;"></input> Kills: <button onclick="add('tKills')">+</button> <sub id="tKills" style="font-size:18px;">0</sub> <button onclick="sub('tKills')">-</button>
+<input id='user' type="text" readonly="true" value="HusKerrs" size="8" style="text-align:center;"> Kills: <button onclick="add('hKills')">+</button> <sub id="hKills" style="font-size:18px;">0</sub> <button onclick="sub('hKills')">-</button>&ensp;<input type="checkbox" id="hStatus" onclick="upStatus('hStatus')"><label for="hStatus">Enabled</label>
+<div>
+<input type="text" id="tName" placeholder="Teammate" size="8" style="text-align:center;"></input> Kills: <button onclick="add('tKills')">+</button> <sub id="tKills" style="font-size:18px;">0</sub> <button onclick="sub('tKills')">-</button>&ensp;<input type="checkbox" id="tStatus" onclick="upStatus('tStatus')"><label for="tStatus">Enabled</label>
 <br>
 <br>
-<input type="text" placeholder="Opponent 1" size="8" style="text-align:center;"></input> Kills: <button onclick="add('o1Kills')">+</button> <sub id="o1Kills" style="font-size:18px;">0</sub> <button onclick="sub('o1Kills')">-</button><div>
-<input type="text" placeholder="Opponent 2" size="8" style="text-align:center;"></input> Kills: <button onclick="add('o2Kills')">+</button> <sub id="o2Kills" style="font-size:18px;">0</sub> <button onclick="sub('o2Kills')">-</button>
+<input type="text" id="o1Name" placeholder="Opponent 1" size="8" style="text-align:center;"></input> Kills: <button onclick="add('o1Kills')">+</button> <sub id="o1Kills" style="font-size:18px;">0</sub> <button onclick="sub('o1Kills')">-</button>&ensp;<input type="checkbox" id="o1Status" onclick="upStatus('o1Status')"><label for="o1Status">Enabled</label>
+<div>
+<input type="text" id="o2Name" placeholder="Opponent 2" size="8" style="text-align:center;"></input> Kills: <button onclick="add('o2Kills')">+</button> <sub id="o2Kills" style="font-size:18px;">0</sub> <button onclick="sub('o2Kills')">-</button>&ensp;<input type="checkbox" id="o2Status" onclick="upStatus('o2Status')"><label for="o2Status">Enabled</label>
 <br><br>
 <button onclick="reset()">Reset All</button>
 
 <script>
+    let status = { "needsUpdate": false, "hStatus": false, "tStatus": false, "o1Status": false, "o2Status": false };
+
     (function first() {
         let channel = document.getElementById('user').value;
         fetch(`/twovtwoscores/${channel.toLowerCase()}`, {
@@ -23,11 +27,23 @@
         }).then(res => res.text())
         .then(body => {
             scores = body.split(' ');
-            if (scores.length == 4) {
+            if (scores.length == 12) {
                 document.getElementById('hKills').innerHTML = parseInt(scores[0]);
                 document.getElementById('tKills').innerHTML = parseInt(scores[1]);
                 document.getElementById('o1Kills').innerHTML = parseInt(scores[2]);
                 document.getElementById('o2Kills').innerHTML = parseInt(scores[3]);
+                document.getElementById('tName').value = scores[4];
+                document.getElementById('o1Name').value = scores[5];
+                document.getElementById('o2Name').value = scores[6];
+                document.getElementById('hStatus').checked = scores[7] === 'true';
+                status['hStatus'] = scores[7] === 'true';
+                document.getElementById('tStatus').checked = scores[8] === 'true';
+                status['tStatus'] = scores[8] === 'true';
+                document.getElementById('o1Status').checked = scores[9] === 'true';
+                status['o1Status'] = scores[9] === 'true';
+                document.getElementById('o2Status').checked = scores[10] === 'true';
+                status['o2Status'] = scores[10] === 'true';
+                document.getElementById('pause').innerHTML = scores[11]?'Pause':'Resume';
             }
             console.log('Success during first.');
         }).catch(err => {
@@ -35,18 +51,90 @@
         })
     })();
 
+    function upStatus(setStat) {
+        let upDat = !(document.getElementById("hStatus").checked === status["hStatus"] && document.getElementById("tStatus").checked === status["tStatus"] &&
+            document.getElementById("o1Status").checked === status["o1Status"] && document.getElementById("o2Status").checked === status["o2Status"]);
+        
+        if (upDat === status["needsUpdate"]) {
+            return;
+        } else {
+            status["needsUpdate"] = upDat;
+            document.getElementById("scoring").innerHTML = upDat?'Scoring enabling/disabling needs to be sent':' ';
+        }
+    }
+
+
+    function enable() {
+        document.getElementById("enable").disabled = true;
+        setTimeout(function() {document.getElementById("enable").disabled = false;}, 1000);
+
+        if (!status["needsUpdate"]) return;
+
+        let channel = document.getElementById('user').value.toLowerCase();
+        status['hStatus'] = document.getElementById('hStatus').checked;
+        status['tStatus'] = document.getElementById('tStatus').checked;
+        status['o1Status'] = document.getElementById('o1Status').checked;
+        status['o2Status'] = document.getElementById('o2Status').checked;
+
+        let eHeaders = { };
+        
+        eHeaders['hName'] = document.getElementById('user').value.toLowerCase();
+        eHeaders['tName'] = document.getElementById('tName').value.toLowerCase();
+        eHeaders['o1Name'] = document.getElementById('o1Name').value.toLowerCase();
+        eHeaders['o2Name'] = document.getElementById('o2Name').value.toLowerCase();
+        eHeaders['Content-Type'] = 'application/json';
+
+        fetch(`/post/${channel}/enable`, {
+            method: "POST",
+            body: JSON.stringify(status),
+            headers: eHeaders
+        })
+        .then(async res => {
+            upDat = res.status != 200;
+            document.getElementById('scoring').innerHTML = ' ';
+            status = await res.json();
+            console.log(status);
+
+            document.getElementById('hStatus').checked = status['hStatus'];
+            document.getElementById('tStatus').checked = status['tStatus'];
+            document.getElementById('o1Status').checked = status['o1Status'];
+            document.getElementById('o2Status').checked = status['o2Status'];
+        })
+        .catch(err => {
+            console.log(err);
+            alert(err);
+        });
+    }
+
     let sInt;
 
     function update() {
         try {
             fetch(`/post/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
-                method: "GET"
-            });
-            console.log('2v2 update success.');
-        } catch (err) {
-            if (err.message.includes('not enabled') && sInt) {
+                method: "GET",
+                headers: {
+                    hName: document.getElementById("user").value,
+                    tName: document.getElementById("tName").value,
+                    o1Name: document.getElementById("o1Name").value,
+                    o2Name: document.getElementById("o2Name").value
+                }
+            })
+            .then(res => {
+                if (res.status != 200) {
+                    clearInterval(sInt);
+                    document.getElementById("pause").innerHTML = 'Resume';
+                } else {
+                    console.log('2v2 update success.');
+                }
+            })
+            .catch(err => {
                 clearInterval(sInt);
-            }
+                document.getElementById("pause").innerHTML = 'Resume';
+                console.log(`Error during update function: ${err}`);
+            });
+        } catch (err) {
+            clearInterval(sInt);
+            document.getElementById("pause").innerHTML = 'Resume';
             console.log(`Error during update function: ${err}`);
         }
     }

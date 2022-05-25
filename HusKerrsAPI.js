@@ -564,22 +564,22 @@ bot.on('chat', async (channel, tags, message) => {
         break;
 
       case '!timeout':
-        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/timeout ${message.substring(message.indexOf(' ') + 1)}`);
         break;
 
       case '!untimeout':
-        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/untimeout ${message.substring(message.indexOf(' ') + 1)}`);
         break;
 
       case '!ban':
-        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/ban ${message.substring(message.indexOf(' ') + 1)}`);
         break;
 
       case '!unban':
-        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/unban ${message.substring(message.indexOf(' ') + 1)}`);
         break;
 

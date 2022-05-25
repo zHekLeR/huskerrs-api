@@ -563,6 +563,26 @@ bot.on('chat', async (channel, tags, message) => {
         for (let i = 0; i < 4; i++) bot.say(channel, 'PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk ')
         break;
 
+      case '!timeout':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        bot.say(channel, `/timeout ${message.substring(message.indexOf(' ') + 1)}`);
+        break;
+
+      case '!untimeout':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        bot.say(channel, `/untimeout ${message.substring(message.indexOf(' ') + 1)}`);
+        break;
+
+      case '!ban':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        bot.say(channel, `/ban ${message.substring(message.indexOf(' ') + 1)}`);
+        break;
+
+      case '!unban':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes['username'])) break;
+        bot.say(channel, `/unban ${message.substring(message.indexOf(' ') + 1)}`);
+        break;
+
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1) && tags["username"] !== "zhekler") break;
         bot.say(channel, 'peepoLeave');

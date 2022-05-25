@@ -565,22 +565,22 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!timeout':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
-        bot.say(channel, `/timeout ${message.substring(message.indexOf(' ') + 1)}`);
+        bot.say(channel, `/timeout ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
         break;
 
       case '!untimeout':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
-        bot.say(channel, `/untimeout ${message.substring(message.indexOf(' ') + 1)}`);
+        bot.say(channel, `/untimeout ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
         break;
 
       case '!ban':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
-        bot.say(channel, `/ban ${message.substring(message.indexOf(' ') + 1)}`);
+        bot.say(channel, `/ban ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
         break;
 
       case '!unban':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
-        bot.say(channel, `/unban ${message.substring(message.indexOf(' ') + 1)}`);
+        bot.say(channel, `/unban ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
         break;
 
       case '!zhekleave':

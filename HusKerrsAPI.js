@@ -553,6 +553,22 @@ bot.on('chat', async (channel, tags, message) => {
         tvtInt = [];
         break;
       
+      case '!subson':
+        if (tags['username'] !== 'zhekler' && tags['username'] !== channel.substring(1)) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET subs = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].subs = true;
+        break;
+
+      case '!subsoff':
+        if (tags['username'] !== 'zhekler' && tags['username'] !== channel.substring(1)) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET subs = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].subs = false;
+        break;
+      
       case '!check':
         if (channel.substring(1) !== 'huskerrs' || (!tags['mod'] && !vips.includes(tags['username']))) break;
         bot.say(channel, await stats(message.substring(message.indexOf(' ') + 1), 'uno'));

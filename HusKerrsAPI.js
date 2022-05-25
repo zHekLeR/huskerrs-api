@@ -637,7 +637,8 @@ let game_modes = {
   'br_dbd_playlist_wz330/cal_iron_trios': 'Caldera Iron Trial Trios',
   'br_dbd_playlist_wz330/cal_iron_duos': 'Caldera Iron Trial Duos',
   'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos',
-  'br_mendota_playlist_wz330': 'Operation Monarch'
+  'br_mendota_playlist_wz330': 'Operation Monarch',
+  'br_mendota_playlist_wz330/op_mon': 'Monarch Quads'
 };
 
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";

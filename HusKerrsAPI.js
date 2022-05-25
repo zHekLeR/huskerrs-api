@@ -125,7 +125,8 @@ bot.on('chat', async (channel, tags, message) => {
     if (!message.startsWith('!')) return;
 
     // Get command.
-    let short = message.split(' ')[0].toLowerCase();
+    let splits = message.split(' ');
+    let short = splits[0].toLowerCase();
 
     // Check/set global cooldown on command.
     if (gcd[channel.substring(1)][short] && gcd[channel.substring(1)][short] > Date.now()) return;
@@ -586,7 +587,7 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!untimeout':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
-        bot.say(channel, `/untimeout ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
+        bot.say(channel, `/untimeout ${splits[1]}`);
         break;
 
       case '!ban':
@@ -596,7 +597,7 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!unban':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
-        bot.say(channel, `/unban ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
+        bot.say(channel, `/unban ${splits[1]}`);
         break;
 
       case '!zhekleave':

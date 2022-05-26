@@ -78,10 +78,10 @@
 
         let eHeaders = { };
         
-        eHeaders['hName'] = document.getElementById('user').value.toLowerCase();
-        eHeaders['tName'] = document.getElementById('tName').value.toLowerCase();
-        eHeaders['o1Name'] = document.getElementById('o1Name').value.toLowerCase();
-        eHeaders['o2Name'] = document.getElementById('o2Name').value.toLowerCase();
+        eHeaders['hName'] = channel;
+        eHeaders['tName'] = document.getElementById('tName').innerHTML.toLowerCase();
+        eHeaders['o1Name'] = document.getElementById('o1Name').innerHTML.toLowerCase();
+        eHeaders['o2Name'] = document.getElementById('o2Name').innerHTML.toLowerCase();
         eHeaders['Content-Type'] = 'application/json';
 
         fetch(`/post/${channel}/enable`, {

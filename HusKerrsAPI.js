@@ -915,10 +915,10 @@ app.get('/post/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
     }
-    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
     }
-    if (userIds[request.get('tname')] && userIds[request.get('o2name')]["two_v_two"]) {
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
     }
     client.release();

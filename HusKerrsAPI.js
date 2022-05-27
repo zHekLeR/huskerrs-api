@@ -622,19 +622,19 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].duel) break;
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0]}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
         if (!res.rows.length) {
           res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
           if (res.rows.length) {
             if (!res.rows[0].oppid || res.rows[0].oppid === '') {
-              await client.query(`UPDATE duelduel SET oppid = '${splits[1]}', expiration = ${Date.now() + 60000} WHERE userid = '${tags["username"]}';`);
-              bot.say(channel, `@${splits[1]} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+              await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now() + 60000} WHERE userid = '${tags["username"]}';`);
+              bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
             } else {
               bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
             }
           } else {
-            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1]}', ${Date.now() + 60000}, '${tags["username"]}');`);
-            bot.say(channel, `@${splits[1]} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now() + 60000}, '${tags["username"]}');`);
+            bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
           }
         } else {
           bot.say(channel, `@${tags["username"]} : This person has already been challenged.`);

@@ -37,7 +37,7 @@ const pool = new Pool({
 });
 
 // Cooldowns for games.
-let rrcd = [], rpscd = [], cfcd = [], bvcd = [];
+let rrcd = [], rpscd = [], cfcd = [], bvcd = [], dcd = [];
 
 // Global cooldowns.
 let gcd = { };
@@ -598,6 +598,101 @@ bot.on('chat', async (channel, tags, message) => {
       case '!unban':
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/unban ${splits[1]}`);
+        break;
+
+      case '!duelon':
+        if (userIds[channel.substring(1)].duel || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET duel = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].duel = true;
+        bot.say(channel, 'Duels are now enabled.');
+        break;
+
+      case '!dueloff':
+        if (!userIds[channel.substring(1)].duel || tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET duel = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].duel = false;
+        bot.say(channel, 'Duels are now disabled.');
+        break;
+      
+      case '!duel': 
+        if (!userIds[channel.substring(1)].duel) break;
+        if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0]}';`);
+        if (!res.rows.length) {
+          res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+          if (res.rows.length) {
+            if (!res.rows[0].oppid || res.rows[0].oppid === '') {
+              await client.query(`UPDATE duelduel SET oppid = '${splits[1]}', expiration = ${Date.now() + 60000} WHERE userid = '${tags["username"]}';`);
+              bot.say(channel, `@${splits[1]} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+            } else {
+              bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
+            }
+          } else {
+            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1]}', ${Date.now() + 60000}, '${tags["username"]}');`);
+            bot.say(channel, `@${splits[1]} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+          }
+        } else {
+          bot.say(channel, `@${tags["username"]} : This person has already been challenged.`);
+        }
+        client.release();
+        dcd[tags["username"]] = Date.now() + 60000;
+        break;
+
+      case '!cancel': 
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+        if (res.rows.length) {
+          await client.query(`UPDATE duelduel SET oppid = '', expiration = 0 WHERE userid = '${tags["username"]}';`);
+          bot.say(channel, `@${tags["username"]} : You have cancelled the duel.`);
+        }
+        client.release();
+        break;
+
+      case '!coward': 
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        if (res.rows.length) {
+          await client.query(`UPDATE duelduel SET oppid = '' expiration = 0 WHERE oppid = '${tags["username"]}';`);
+        }
+        client.release();
+        break;
+
+      case '!accept': 
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        if (res.rows.length) {
+          let rand = Math.round(Math.random());
+          if (rand) {
+            await client.query(`UPDATE duelduel SET oppid = '', expiration = 0, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
+            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+            if (res2.rows.length) {
+              await client.query(`UPDATE duelduel SET losses = losses + 1 WHERE userid = '${tags["username"]}';`);
+            } else {
+              await client.query(`INSERT INTO duelduel(userid, losses) VALUES ('${tags["username"]}', 1);`);
+            }
+            bot.say(channel, `/timeout ${tags["username"]} 60`);
+            bot.say(channel, `${res.rows[0].userid} has won the duel against ${tags["username"]}!`);
+          } else {
+            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+            if (res2.rows.length) {
+              await client.query(`UPDATE duelduel SET wins = wins + 1 WHERE userid = '${tags["username"]}';`);
+            } else {
+              await client.query(`INSERT INTO duelduel(userid, wins) VALUES ('${tags["username"]}', 1);`);
+            }
+            await client.query(`UPDATE duelduel SET oppid = '', expiration = 0, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
+            bot.say(channel, `/timeout ${res.rows[0].userid} 60`);
+            bot.say(channel, `${tags["username"]} has won the duel against ${res.rows[0].userid}!`);
+          }
+        }
+        client.release();
         break;
 
       case '!zhekleave':

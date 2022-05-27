@@ -113,10 +113,10 @@
             fetch(`/post/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
                 method: "GET",
                 headers: {
-                    hName: document.getElementById("user").value,
-                    tName: document.getElementById("tName").value,
-                    o1Name: document.getElementById("o1Name").value,
-                    o2Name: document.getElementById("o2Name").value
+                    hName: document.getElementById("user").value.toLowerCase(),
+                    tName: document.getElementById("tName").value.toLowerCase(),
+                    o1Name: document.getElementById("o1Name").value.toLowerCase(),
+                    o2Name: document.getElementById("o2Name").value.toLowerCase()
                 }
             })
             .then(res => {

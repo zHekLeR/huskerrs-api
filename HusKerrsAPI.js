@@ -623,7 +623,8 @@ bot.on('chat', async (channel, tags, message) => {
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
-        if (!res.rows.length) {
+        let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
+        if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === '')) {
           res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
           if (res.rows.length) {
             if (!res.rows[0].oppid || res.rows[0].oppid === '') {
@@ -637,7 +638,7 @@ bot.on('chat', async (channel, tags, message) => {
             bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
           }
         } else {
-          bot.say(channel, `@${tags["username"]} : This person has already been challenged.`);
+          bot.say(channel, `@${tags["username"]} : This person has already challenged someone / been challenged.`);
         }
         client.release();
         dcd[tags["username"]] = Date.now() + 30000;
@@ -668,7 +669,6 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
-        console.log(res.rows);
         if (res.rows.length) {
           let rand = Math.round(Math.random());
           if (rand) {

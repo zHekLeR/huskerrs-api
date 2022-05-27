@@ -627,13 +627,13 @@ bot.on('chat', async (channel, tags, message) => {
           res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
           if (res.rows.length) {
             if (!res.rows[0].oppid || res.rows[0].oppid === '') {
-              await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now() + 60000} WHERE userid = '${tags["username"]}';`);
+              await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
               bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
             } else {
               bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
             }
           } else {
-            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now() + 60000}, '${tags["username"]}');`);
+            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}');`);
             bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
           }
         } else {
@@ -737,7 +737,7 @@ async function tvtscores(channel) {
 async function duelExpiration() {
   try {
     let client = await pool.connect();
-    await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647 WHERE expiration < ${Date.now()};`);
+    await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647 WHERE expiration < ${Date.now()/1000};`);
     client.release();
   } catch (err) {
     console.log(err);

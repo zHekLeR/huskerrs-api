@@ -610,7 +610,7 @@ bot.on('chat', async (channel, tags, message) => {
         break;
 
       case '!dueloff':
-        if (!userIds[channel.substring(1)].duel || tags["mod"]) break;
+        if (!userIds[channel.substring(1)].duel || !tags["mod"]) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET duel = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();

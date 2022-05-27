@@ -640,7 +640,7 @@ bot.on('chat', async (channel, tags, message) => {
           bot.say(channel, `@${tags["username"]} : This person has already been challenged.`);
         }
         client.release();
-        dcd[tags["username"]] = Date.now() + 60000;
+        dcd[tags["username"]] = Date.now() + 30000;
         break;
 
       case '!cancel': 
@@ -648,7 +648,7 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
         if (res.rows.length) {
-          await client.query(`UPDATE duelduel SET oppid = '', expiration = 0 WHERE userid = '${tags["username"]}';`);
+          await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647 WHERE userid = '${tags["username"]}';`);
           bot.say(channel, `@${tags["username"]} : You have cancelled the duel.`);
         }
         client.release();
@@ -659,7 +659,7 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
         if (res.rows.length) {
-          await client.query(`UPDATE duelduel SET oppid = '' expiration = 0 WHERE oppid = '${tags["username"]}';`);
+          await client.query(`UPDATE duelduel SET oppid = '' expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
         }
         client.release();
         break;
@@ -671,7 +671,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (res.rows.length) {
           let rand = Math.round(Math.random());
           if (rand) {
-            await client.query(`UPDATE duelduel SET oppid = '', expiration = 0, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
+            await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
             let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
             if (res2.rows.length) {
               await client.query(`UPDATE duelduel SET losses = losses + 1 WHERE userid = '${tags["username"]}';`);
@@ -687,12 +687,24 @@ bot.on('chat', async (channel, tags, message) => {
             } else {
               await client.query(`INSERT INTO duelduel(userid, wins) VALUES ('${tags["username"]}', 1);`);
             }
-            await client.query(`UPDATE duelduel SET oppid = '', expiration = 0, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
+            await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
             bot.say(channel, `/timeout ${res.rows[0].userid} 60`);
             bot.say(channel, `${tags["username"]} has won the duel against ${res.rows[0].userid}!`);
           }
         }
         client.release();
+        break;
+
+      case '!duelscore':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+        client.release();
+        if (res.rows.length && (res.rows[0].wins || res.rows[0].losses)) {
+          bot.say(channel, `${tags["username"]} has won ${res.rows[0].wins} duels and lost ${res.rows[0].losses}. That is a ${(100*res.rows[0].wins/(res.rows[0].wins+res.rows[0].losses)).toFixed(2)}% win rate.`);
+        } else {
+          bot.say(channel, `${tags["username"]} has not dueled anyone.`);
+        }
         break;
 
       case '!zhekleave':
@@ -719,6 +731,17 @@ async function tvtscores(channel) {
     console.log(`Error during tvtscores: ${err}`);
   }
 } 
+
+
+async function duelExpiration() {
+  try {
+    let client = await pool.connect();
+    await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647 WHERE expiration < ${Date.now()};`);
+    client.release();
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 // Twitch bot subscription handler.
 bot.on('subscription', (channel, username, method, message, userstate) => {
@@ -2304,6 +2327,8 @@ async function brookescribers() {
         console.log(`Match intervals: ${err}`);
       }
     }, 300000);
+
+    setInterval(function() { duelExpiration(); }, 5000);
 
     // Release client.
     client.release();

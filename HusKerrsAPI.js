@@ -668,6 +668,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        console.log(res.rows);
         if (res.rows.length) {
           let rand = Math.round(Math.random());
           if (rand) {

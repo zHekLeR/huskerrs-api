@@ -625,10 +625,10 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
         let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
-        if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === '')) {
+        if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
           res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
           if (res.rows.length) {
-            if (!res.rows[0].oppid || res.rows[0].oppid === '') {
+            if (!res.rows[0].oppid || res.rows[0].oppid === ' ') {
               await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
               bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
             } else {
@@ -650,7 +650,7 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
         if (res.rows.length) {
-          await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647 WHERE userid = '${tags["username"]}';`);
+          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE userid = '${tags["username"]}';`);
           bot.say(channel, `@${tags["username"]} : You have cancelled the duel.`);
         }
         client.release();
@@ -661,7 +661,7 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
         if (res.rows.length) {
-          await client.query(`UPDATE duelduel SET oppid = '' expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
+          await client.query(`UPDATE duelduel SET oppid = ' ' expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
         }
         client.release();
         break;
@@ -673,7 +673,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (res.rows.length) {
           let rand = Math.round(Math.random());
           if (rand) {
-            await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
+            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
             let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
             if (res2.rows.length) {
               await client.query(`UPDATE duelduel SET losses = losses + 1 WHERE userid = '${tags["username"]}';`);
@@ -689,7 +689,7 @@ bot.on('chat', async (channel, tags, message) => {
             } else {
               await client.query(`INSERT INTO duelduel(userid, wins) VALUES ('${tags["username"]}', 1);`);
             }
-            await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
+            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
             bot.say(channel, `/timeout ${res.rows[0].userid} 60`);
             bot.say(channel, `${tags["username"]} has won the duel against ${res.rows[0].userid}!`);
           }
@@ -738,7 +738,7 @@ async function tvtscores(channel) {
 async function duelExpiration() {
   try {
     let client = await pool.connect();
-    await client.query(`UPDATE duelduel SET oppid = '', expiration = 2147483647 WHERE expiration < ${Date.now()/1000};`);
+    await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE expiration < ${Date.now()/1000};`);
     client.release();
   } catch (err) {
     console.log(err);

@@ -1246,12 +1246,15 @@ app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
     await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
+      await tvtscores(request.get('tname'));
     }
     if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
+      await tvtscores(request.get('o1name'));
     }
     if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
+      await tvtscores(request.get('o2name'));
     }
     client.release();
 

@@ -625,8 +625,8 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
         let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
-        console.log(res);
-        console.log(res2);
+        console.log(res.rows);
+        console.log(res2.rows);
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
           res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
           if (res.rows.length) {

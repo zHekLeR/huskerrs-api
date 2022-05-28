@@ -621,6 +621,7 @@ bot.on('chat', async (channel, tags, message) => {
       case '!duel': 
         if (!userIds[channel.substring(1)].duel) break;
         console.log(dcd[tags["username"]]);
+        console.log(Date.now());
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
         client = await pool.connect();
@@ -629,19 +630,24 @@ bot.on('chat', async (channel, tags, message) => {
         console.log(res.rows);
         console.log(res2.rows);
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
-          res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+          console.log(1);
+          let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
           if (res.rows.length) {
-            if (!res.rows[0].oppid || res.rows[0].oppid === ' ') {
+            if (!res3.rows[0].oppid || res3.rows[0].oppid === ' ') {
+              console.log(2);
               await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
               bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
             } else {
+              console.log(3);
               bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
             }
           } else {
+            console.log(4);
             await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}');`);
             bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
           }
         } else {
+          console.log(5);
           bot.say(channel, `@${tags["username"]} : This person has already challenged someone / been challenged.`);
         }
         client.release();
@@ -665,8 +671,10 @@ bot.on('chat', async (channel, tags, message) => {
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
         if (res.rows.length) {
           await client.query(`UPDATE duelduel SET oppid = ' ' expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
+          client.release();
+        } else {
+          client.release();
         }
-        client.release();
         break;
 
       case '!accept': 

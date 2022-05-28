@@ -1169,7 +1169,7 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
       str += `('${keys[i]}'::text, ${updates[keys[i]]}::bool)${i + 1 === keys.length?'':', '}`;
 
       if (keys[i] === 'huskerrs') { bot.say('huskerrs', `!enable !score ${!updates['huskerrs']}`)};
-      bot.say(keys[i], `Score reporting ${updates[keys[i]]?'enabled':'disabled'}`);
+      //bot.say(keys[i], `Score reporting ${updates[keys[i]]?'enabled':'disabled'}`);
 
       let rows = await client.query(`SELECT * FROM twovtwo WHERE userid = '${keys[i]}';`);
       if (rows.rows.length) {
@@ -1241,6 +1241,7 @@ app.get('/tvtpause/:channel', (request, response) => {
 app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
     if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    console.log(request.headers);
 
     let client = await pool.connect();
     await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);

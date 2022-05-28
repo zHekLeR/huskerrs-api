@@ -632,7 +632,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
           console.log(1);
           let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
-          if (res.rows.length) {
+          if (res3.rows.length) {
             if (!res3.rows[0].oppid || res3.rows[0].oppid === ' ') {
               console.log(2);
               await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);

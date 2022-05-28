@@ -670,7 +670,7 @@ bot.on('chat', async (channel, tags, message) => {
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
         if (res.rows.length) {
-          await client.query(`UPDATE duelduel SET oppid = ' ' expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
+          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
           client.release();
         } else {
           client.release();

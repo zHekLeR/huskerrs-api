@@ -622,7 +622,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].duel) break;
         console.log(dcd[tags["username"]]);
         console.log(Date.now());
-        if (!dcd[tags["username"]] || dcd[tags["username"]] < Date.now()) break;
+        if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);

@@ -622,7 +622,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].duel) break;
         console.log(dcd[tags["username"]]);
         console.log(Date.now());
-        if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
+        if (dcd[tags["username"]] && (dcd[tags["username"]] < Date.now())) break;
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
@@ -651,7 +651,7 @@ bot.on('chat', async (channel, tags, message) => {
           bot.say(channel, `@${tags["username"]} : This person has already challenged someone / been challenged.`);
         }
         client.release();
-        dcd[tags["username"]] = Date.now() + 30000;
+        dcd[tags["username"]] = Date.now() + 15000;
         break;
 
       case '!cancel': 
@@ -718,6 +718,22 @@ bot.on('chat', async (channel, tags, message) => {
         } else {
           bot.say(channel, `${tags["username"]} has not dueled anyone.`);
         }
+        break;
+
+      case '!duellb':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel ORDER BY wins DESC LIMIT 3;`);
+        client.release();
+        bot.say(channel, `Duel Leaderboard: Wins | ${res.rows[0].userid}: ${res.rows[0].wins} | ${res.rows[1].userid}: ${res.rows[1].wins} | ${res.rows[2].userid}: ${res.rows[2].wins}`);
+        break;
+
+      case '!duellbratio':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 2) AS rr ORDER BY percent ASC LIMIT 3;`);
+        client.release();
+        bot.say(channel, `Duel Leaderboard: Ratio | ${res.rows[0].userid}: ${res.rows[0].percent}% (${res.rows[0].wins + res.rows[0].losses}) | ${res.rows[1].userid}: ${res.rows[1].percent}% (${res.rows[1].wins + res.rows[1].losses}) | ${res.rows[2].userid}: ${res.rows[2].percent}% (${res.rows[2].wins + res.rows[2].losses})`)
         break;
 
       case '!zhekleave':

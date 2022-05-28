@@ -147,9 +147,11 @@
             setTimeout(function() {document.getElementById("send").disabled = false;}, 1000);
             fetch(`/send/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
                 method: "GET",
-                tname: document.getElementById('tName').value.toLowerCase(),
-                o1name: document.getElementById('o1Name').value.toLowerCase(),
-                o2name: document.getElementById('o2Name').value.toLowerCase()
+                headers: {
+                    tname: document.getElementById('tName').value.toLowerCase(),
+                    o1name: document.getElementById('o1Name').value.toLowerCase(),
+                    o2name: document.getElementById('o2Name').value.toLowerCase()
+                }
             });
             console.log('2v2 send success.');
         } catch (err) {

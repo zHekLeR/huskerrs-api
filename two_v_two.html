@@ -196,7 +196,12 @@
     function reset() {
         try {
             fetch(`/post/${document.getElementById('user').value.toLowerCase()}/reset`, {
-                method: "GET"
+                method: "GET",
+                headers: {
+                    tname: document.getElementById('tName').value.toLowerCase(),
+                    o1name: document.getElementById('o1Name').value.toLowerCase(),
+                    o2name: document.getElementById('o2Name').value.toLowerCase()
+                }
             }).then(res => {
                 console.log('2v2 reset success.');
                 document.getElementById('hKills').innerHTML = 0;

@@ -620,6 +620,7 @@ bot.on('chat', async (channel, tags, message) => {
       
       case '!duel': 
         if (!userIds[channel.substring(1)].duel) break;
+        console.log(dcd["username"]);
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
         client = await pool.connect();
@@ -645,7 +646,6 @@ bot.on('chat', async (channel, tags, message) => {
         }
         client.release();
         dcd[tags["username"]] = Date.now() + 30000;
-        console.log(dcd["username"]);
         break;
 
       case '!cancel': 

@@ -645,6 +645,7 @@ bot.on('chat', async (channel, tags, message) => {
         }
         client.release();
         dcd[tags["username"]] = Date.now() + 30000;
+        console.log(dcd["username"]);
         break;
 
       case '!cancel': 

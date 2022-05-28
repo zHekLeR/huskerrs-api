@@ -1193,13 +1193,42 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
 // Pause scores
 app.get('/tvtpause/:channel', (request, response) => {
   try {
-    if (tvtInt[request.params.channel]) {
-      clearInterval(tvtInt[request.params.channel]);
-      delete tvtInt[request.params.channel];
-      response.sendStatus(200);
-    } else {
-      tvtInt[request.params.channel] = setInterval(function(){tvtscores(request.params.channel)}, 30000);
-      response.sendStatus(201);
+    if (userIds[request.params.channel] && userIds[request.params.channel]["two_v_two"]) {
+      if (tvtInt[request.params.channel]) {
+        clearInterval(tvtInt[request.params.channel]);
+        delete tvtInt[request.params.channel];
+        response.sendStatus(200);
+      } else {
+        tvtInt[request.params.channel] = setInterval(function(){tvtscores(request.params.channel)}, 30000);
+        response.sendStatus(201);
+      }
+    }
+
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      if (tvtInt[request.get('tname')]) {
+        clearInterval(tvtInt[request.get('tname')]);
+        delete tvtInt[request.get('tname')];
+      } else {
+        tvtInt[request.get('tname')] = setInterval(function(){tvtscores(request.get('tname'))}, 30000);
+      }
+    }
+
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
+      if (tvtInt[request.get('o1name')]) {
+        clearInterval(tvtInt[request.get('o1name')]);
+        delete tvtInt[request.get('o1name')];
+      } else {
+        tvtInt[request.get('o1name')] = setInterval(function(){tvtscores(request.get('o1name'))}, 30000);
+      }
+    }
+
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
+      if (tvtInt[request.get('o2name')]) {
+        clearInterval(tvtInt[request.get('o2name')]);
+        delete tvtInt[request.get('o2name')];
+      } else {
+        tvtInt[request.get('o2name')] = setInterval(function(){tvtscores(request.get('o2name'))}, 30000);
+      }
     }
   } catch (err) {
     console.log(`Error during 2v2 pause: ${err}`);

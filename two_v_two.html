@@ -168,8 +168,15 @@
 
     function pause() {
         try {
+            document.getElementById("pause").disabled = true;
+            setTimeout(function() {document.getElementById("pause").disabled = false;}, 1000);
             fetch(`/tvtpause/${document.getElementById("user").value.toLowerCase()}`, {
-                method: "GET"
+                method: "GET",
+                headers: {
+                    tname: document.getElementById('tName').value.toLowerCase(),
+                    o1name: document.getElementById('o1Name').value.toLowerCase(),
+                    o2name: document.getElementById('o2Name').value.toLowerCase()
+                }
             }).then(res => {
                 let text = document.getElementById("pause");
                 text.innerHTML = res.status == 200?'Resume':'Pause';

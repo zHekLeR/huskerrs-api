@@ -1576,7 +1576,7 @@ async function stats(username, platform) {
       return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
     } catch (err) {
       console.log(`Stats: ${err}`);
-      return err.toString().includes('permitted')?'Account is private.':'Error getting stats.';
+      return err.toString().includes('private')?'Account is private.':'Error getting stats.';
     }
   }
 };

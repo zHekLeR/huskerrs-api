@@ -671,10 +671,9 @@ bot.on('chat', async (channel, tags, message) => {
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
         if (res.rows.length) {
           await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
-          client.release();
-        } else {
-          client.release();
-        }
+          bot.say(channel, `${tags["username"]} has rejected the duel KEKWiggle`)
+        } 
+        client.release();
         break;
 
       case '!accept': 

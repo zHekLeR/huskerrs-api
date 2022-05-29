@@ -37,7 +37,7 @@ const pool = new Pool({
 });
 
 // Cooldowns for games.
-let rrcd = [], rpscd = [], cfcd = [], bvcd = [];
+let rrcd = [], rpscd = [], cfcd = [], bvcd = [], dcd = [];
 
 // Global cooldowns.
 let gcd = { };
@@ -75,19 +75,27 @@ discord.once('ready', () => {
 // Loadout command for Discord.
 const prefix = "!loadout";
 discord.on("messageCreate", (message) => {
-  if (message.channel.id !== "775090169417826326") return;
-	if (message.content.startsWith(prefix)) {
-		try {
-		  message.author.send("HusKerrs' Loadouts (favorite guns at the top): https://www.kittr.gg/channel/HusKerrs/warzone\n"+
-		  "If you're having trouble accessing the loadout site, please DM @zHekLeR on Twitch or Discord.");
-		} catch (err) {
-			console.log(err);
-		}
-	}
+  if (message.channel.id === "775090169417826326") {
+    if (message.content.startsWith(prefix)) {
+      try {
+        message.author.send("HusKerrs' Loadouts (favorite guns at the top): https://www.kittr.gg/channel/HusKerrs/warzone\n"+
+        "If you're having trouble accessing the loadout site, please DM @zHekLeR on Twitch or Discord.");
+      } catch (err) {
+        console.log(err);
+      }
+    }
+	} else if (message.channel.id === "860699279017639936") {
+    if (message.content.indexOf('/ban ') >= 0) {
+      bot.say('huskerrs', message.content.substring(message.content.indexOf('/ban ')) + ' | Global ban');
+    } 
+  }
 });
+
 
 // Log in to the Discord bot.
 discord.login(process.env.TOKEN);
+
+const vips = 'neosog, guppii, lululuvely, officialgloriouspcgr, tannerslays, itsthiccchick, craftyjoseph, thanks4dying, mateocrafter1304, hannahnicole4300, stormen, thomdez, fuzwuz, cklaas, triv, zxch, airy_z, bumbobboi, twisttedt, meerko, confire, geesh, missnaruka, gmoe003, femsteph, gdolphn, patriotic, rknhd, rogue_frank, crowder, vileagony, safecojoe, biazar, notjustjohnny, meesterhauns, kurt, midone, muffinwithnobrim, mikedrop39, bronny, swagg, stableronaldo, willo7891, hitstreak, scump, n8brotherwolf, cloakzy, chickitv, karma, soapwingo, joewo, hoffensnieg, deeksjr, tiensochill, gloliva, destroy, its_iron, imr_sa, ochocinco, magalonn, artesianbuilds, azsnakeb1t3, hasham_33, alextumay, pat_o_, nicewigg, 1chilldawg, hideouts_, scummn, momskerrs, p90queen, drawrj, jefedejeff, methodz, valorash_, tyrannymedia, lablakers24, antdavis3, almxnd, jgod_gaming, mafiia_niko, liamferrari, timthetatman, feldubb, holyman, kentb57, l3xu55, bbreadman, sinnerrrr, aydan, unrational, wagnificent, davidtheslayerrr, tommey, zsmit, drakota, mvs_11, ndolok, janegoatt'.split(', ');
 
 // Create the Twitch bot.
 const bot = new tmi.Client({
@@ -102,7 +110,7 @@ const bot = new tmi.Client({
   channels: [ ]
 });
 
-let tvtInt = [];
+let tvtInt = {};
 
 // Logs the Twitch bot being initialized.
 bot.on('logon', () => {
@@ -117,7 +125,8 @@ bot.on('chat', async (channel, tags, message) => {
     if (!message.startsWith('!')) return;
 
     // Get command.
-    let short = message.split(' ')[0].toLowerCase();
+    let splits = message.split(' ');
+    let short = splits[0].toLowerCase();
 
     // Check/set global cooldown on command.
     if (gcd[channel.substring(1)][short] && gcd[channel.substring(1)][short] > Date.now()) return;
@@ -150,7 +159,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].revolverroulette) break;
         if (!rrcd[tags["username"]] || rrcd[tags["username"]] < Date.now()) {
           bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"]));
-          rrcd[tags["username"]] = Date.now() + 300000;
+          rrcd[tags["username"]] = Date.now() + 30000;
         }
         break;
 
@@ -167,6 +176,21 @@ bot.on('chat', async (channel, tags, message) => {
       case '!rrlb':
         if (!userIds[channel.substring(1)].revolverroulette) break;
         bot.say(channel, await revolverroulette.revolverrouletteLb());
+        break;
+
+      case '!rrlbdie':
+        if (!userIds[channel.substring(1)].revolverroulette) break;
+        bot.say(channel, await revolverroulette.revolverrouletteLbDie());
+        break;
+
+      case '!rrlbratio':
+        if (!userIds[channel.substring(1)].revolverroulette) break;
+        bot.say(channel, await revolverroulette.revolverrouletteLbRatio());
+        break;
+
+      case '!rrlbratiolow':
+        if (!userIds[channel.substring(1)].revolverroulette) break;
+        bot.say(channel, await revolverroulette.revolverrouletteLbRatioLow());
         break;
 
       case '!rrtotals':
@@ -345,7 +369,7 @@ bot.on('chat', async (channel, tags, message) => {
         }
         res.rows[0].maps.placement.push(placement);
         res.rows[0].maps.kills.push(kills);
-        await client.query(`UPDATE customs SET maps = '{"placement":${'[' + res.rows[0].maps.placement.join(',') + ']'},"kills":${'[' + res.rows[0].maps.kills.join(',') + ']'}}' WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         if (placement > 3 && placement < 21) {
           placement = `${placement}th`;
@@ -358,7 +382,7 @@ bot.on('chat', async (channel, tags, message) => {
         } else {
           placement = `${placement}th`;
         }
-        bot.say(channel, `Team HusKerrs got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
+        bot.say(channel, `Team ${channel.substring(1)} got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
         break;
 
       case '!removemap':
@@ -416,7 +440,7 @@ bot.on('chat', async (channel, tags, message) => {
       case '!resetmaps':
         if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
         client = await pool.connect();
-        await client.query(`UPDATE customs SET maps = '{"placement":[],"kills":[]}' WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET maps = '{"placement":[],"kills":[]}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         bot.say(channel, `Maps have been reset.`);
         break;
@@ -494,30 +518,221 @@ bot.on('chat', async (channel, tags, message) => {
         break;
       
       case '!2v2on':
-        if (userIds[channel.substring(1)].two_v_two || !tags["mod"]) break;
+        if ((userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
+          bot.say(channel, `HusKerrs' official scorekeeper is esSpyderMonkey. Make sure to thank him for the updates!`);
+        } else {
+          bot.say(channel, 'Score recording enabled.');
         }
         client = await pool.connect();
-        await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`)
+        await client.query(`UPDATE allusers SET two_v_two = true WHERE user_id = '${channel.substring(1)}';`);
+        let rows = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel.substring(1)}';`);
+        if (rows.rows.length) {
+          await client.query(`UPDATE twovtwo SET hkills = 0, tkills = 0, o1kills = 0, o2kills = 0 WHERE userid = '${channel.substring(1)}';`);
+        } else {
+          await client.query(`INSERT INTO twovtwo(hkills, tkills, o1kills, o2kills, userid) VALUES (0, 0, 0, 0, '${channel.substring(1)}');`)
+        }
         client.release();
-        userIds[channel.substring(1)].two_v_two = true;
-        tvtInt.push(setInterval(function() {tvtscores(channel.substring(1))}, 30000));
+        userIds[channel.substring(1)]["two_v_two"] = true;
+        tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
         break;
 
       case '!2v2off':
-        if (!userIds[channel.substring(1)].two_v_two || !tags["mod"]) break;;
+        if ((!userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score true');
+        } else {
+          bot.say(channel, 'Score recording disabled.');
         }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET two_v_two = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
-        userIds[channel.substring(1)].two_v_two = false;
-        for (let i = 0; i < tvtInt.length; i++) {
-          clearInterval(tvtInt[i]);
-        }
+        userIds[channel.substring(1)]["two_v_two"] = false;
+        clearInterval(tvtInt[channel.substring(1)]);
+        delete tvtInt[channel.substring(1)];
         tvtInt = [];
+        break;
+      
+      case '!subson':
+        if (tags['username'] !== 'zhekler' && tags['username'] !== channel.substring(1)) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET subs = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].subs = true;
+        break;
+
+      case '!subsoff':
+        if (tags['username'] !== 'zhekler' && tags['username'] !== channel.substring(1)) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET subs = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].subs = false;
+        break;
+      
+      case '!check':
+        if (channel.substring(1) !== 'huskerrs' || (!tags['mod'] && !vips.includes(tags['username']))) break;
+        bot.say(channel, await stats(message.substring(message.indexOf(' ') + 1), 'uno'));
+        break;
+
+      case '!pred':
+        if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
+        for (let i = 0; i < 4; i++) bot.say(channel, 'PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk ')
+        break;
+
+      case '!timeout':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
+        bot.say(channel, `/timeout ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
+        break;
+
+      case '!untimeout':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
+        bot.say(channel, `/untimeout ${splits[1]}`);
+        break;
+
+      case '!ban':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
+        bot.say(channel, `/ban ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
+        break;
+
+      case '!unban':
+        if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
+        bot.say(channel, `/unban ${splits[1]}`);
+        break;
+
+      case '!duelon':
+        if (userIds[channel.substring(1)].duel || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET duel = true WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].duel = true;
+        bot.say(channel, 'Duels are now enabled.');
+        break;
+
+      case '!dueloff':
+        if (!userIds[channel.substring(1)].duel || !tags["mod"]) break;
+        client = await pool.connect();
+        await client.query(`UPDATE allusers SET duel = false WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
+        userIds[channel.substring(1)].duel = false;
+        bot.say(channel, 'Duels are now disabled.');
+        break;
+      
+      case '!duel': 
+        if (!userIds[channel.substring(1)].duel) break;
+        console.log(dcd[tags["username"]]);
+        console.log(Date.now());
+        if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
+        splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
+        let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
+        console.log(res.rows);
+        console.log(res2.rows);
+        if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
+          console.log(1);
+          let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+          if (res3.rows.length) {
+            if (!res3.rows[0].oppid || res3.rows[0].oppid === ' ') {
+              console.log(2);
+              await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
+              bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+            } else {
+              console.log(3);
+              bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
+            }
+          } else {
+            console.log(4);
+            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}');`);
+            bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+          }
+        } else {
+          console.log(5);
+          bot.say(channel, `@${tags["username"]} : This person has already challenged someone / been challenged.`);
+        }
+        client.release();
+        dcd[tags["username"]] = Date.now() + 15000;
+        break;
+
+      case '!cancel': 
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+        if (res.rows.length) {
+          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE userid = '${tags["username"]}';`);
+          bot.say(channel, `@${tags["username"]} : You have cancelled the duel.`);
+        }
+        client.release();
+        break;
+
+      case '!coward': 
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        if (res.rows.length) {
+          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
+          bot.say(channel, `${tags["username"]} has rejected the duel KEKWiggle`)
+        } 
+        client.release();
+        break;
+
+      case '!accept': 
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        if (res.rows.length) {
+          let rand = Math.round(Math.random());
+          if (rand) {
+            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
+            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+            if (res2.rows.length) {
+              await client.query(`UPDATE duelduel SET losses = losses + 1 WHERE userid = '${tags["username"]}';`);
+            } else {
+              await client.query(`INSERT INTO duelduel(userid, losses) VALUES ('${tags["username"]}', 1);`);
+            }
+            bot.say(channel, `/timeout ${tags["username"]} 60`);
+            bot.say(channel, `${res.rows[0].userid} has won the duel against ${tags["username"]}!`);
+          } else {
+            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+            if (res2.rows.length) {
+              await client.query(`UPDATE duelduel SET wins = wins + 1 WHERE userid = '${tags["username"]}';`);
+            } else {
+              await client.query(`INSERT INTO duelduel(userid, wins) VALUES ('${tags["username"]}', 1);`);
+            }
+            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
+            bot.say(channel, `/timeout ${res.rows[0].userid} 60`);
+            bot.say(channel, `${tags["username"]} has won the duel against ${res.rows[0].userid}!`);
+          }
+        }
+        client.release();
+        break;
+
+      case '!duelscore':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+        client.release();
+        if (res.rows.length && (res.rows[0].wins || res.rows[0].losses)) {
+          bot.say(channel, `${tags["username"]} has won ${res.rows[0].wins} duels and lost ${res.rows[0].losses}. That is a ${(100*res.rows[0].wins/(res.rows[0].wins+res.rows[0].losses)).toFixed(2)}% win rate.`);
+        } else {
+          bot.say(channel, `${tags["username"]} has not dueled anyone.`);
+        }
+        break;
+
+      case '!duellb':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel ORDER BY wins DESC LIMIT 3;`);
+        client.release();
+        bot.say(channel, `Duel Leaderboard: Wins | ${res.rows[0].userid}: ${res.rows[0].wins} | ${res.rows[1].userid}: ${res.rows[1].wins} | ${res.rows[2].userid}: ${res.rows[2].wins}`);
+        break;
+
+      case '!duellbratio':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 2) AS rr ORDER BY percent ASC LIMIT 3;`);
+        client.release();
+        bot.say(channel, `Duel Leaderboard: Ratio | ${res.rows[0].userid}: ${res.rows[0].percent}% (${res.rows[0].wins + res.rows[0].losses}) | ${res.rows[1].userid}: ${res.rows[1].percent}% (${res.rows[1].wins + res.rows[1].losses}) | ${res.rows[2].userid}: ${res.rows[2].percent}% (${res.rows[2].wins + res.rows[2].losses})`)
         break;
 
       case '!zhekleave':
@@ -532,20 +747,27 @@ bot.on('chat', async (channel, tags, message) => {
   }
 });
 
-if (userIds['huskerrs'].two_v_two) {
-  tvtInt.push(setInterval(function() {tvtscores('huskerrs')}, 30000))
-}
-
 async function tvtscores(channel) {
   try {
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM twovtwo WHERE user_id = '${channel}';`);
+    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel}';`);
     client.release();
     let us = res.rows[0].hkills + res.rows[0].tkills;
     let opp = res.rows[0].o1kills + res.rows[0].o2kills;
-    bot.say(channel, `${us} - ${opp} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
+    bot.say(channel, `${us} - ${opp}${(us==6 && opp==9)?` Nice`:``} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
   } catch (err) {
     console.log(`Error during tvtscores: ${err}`);
+  }
+} 
+
+
+async function duelExpiration() {
+  try {
+    let client = await pool.connect();
+    await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE expiration < ${Date.now()/1000};`);
+    client.release();
+  } catch (err) {
+    console.log(err);
   }
 }
 
@@ -597,7 +819,9 @@ let game_modes = {
   'br_dbd_playlist_wz330/cal_iron_quads': 'Caldera Iron Trial Quads',
   'br_dbd_playlist_wz330/cal_iron_trios': 'Caldera Iron Trial Trios',
   'br_dbd_playlist_wz330/cal_iron_duos': 'Caldera Iron Trial Duos',
-  'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos'
+  'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos',
+  'br_mendota_playlist_wz330': 'Operation Monarch',
+  'br_mendota_playlist_wz330/op_mon': 'Monarch Quads'
 };
 
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";
@@ -649,6 +873,8 @@ function apiErrorHandling(error) {
                           return '404 - Not found. Incorrect username or platform? Misconfigured privacy settings?';
                       case 'Not permitted: rate limit exceeded':
                           return '429 - Too many requests. Try again in a few minutes.';
+                      case 'Not permitted: not allowed':
+                          return apiErrorMessage;
                       case 'Error from datastore':
                           return '500 - Internal server error. Request failed, try again.';
                       default:
@@ -659,6 +885,8 @@ function apiErrorHandling(error) {
                   return '401 - Unauthorized. Incorrect username or password.';
               case 403:
                   return '403 - Forbidden. You may have been IP banned. Try again in a few minutes.';
+              case 404:
+                  return 'Account is set to private.';
               case 500:
                   return '500 - Internal server error. Request failed, try again.';
               case 502:
@@ -757,6 +985,9 @@ function lifetime(gamertag, platform) {
 
 // Create server.
 const app = express();
+app.use(express.json());
+import bodyParser from 'body-parser';
+let jsonParser = bodyParser.json();
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -776,39 +1007,66 @@ app.get('/', (request, response) => {
 // 2v2
 app.get('/twovtwo', (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
     response.sendFile(path.join(__dirname, 'two_v_two.html'));
   } catch (err) {
     console.log(err);
-    response.send(err);
+    response.send(err.message);
+  }
+});
+
+
+// 2v2
+app.get('/twovtwo/:channel', (request, response) => {
+  try {
+    if (!userIds[request.params.channel]) throw new Error(`zHekLeR bot not enabled in channel: ${request.params.channel}.`);
+    fs.readFile(path.join(__dirname, 'two_v_two.html'), 'utf8', (err, data) => {
+      if (err) {
+        throw new Error(err.message);
+      }
+
+      data = data.replace(/HusKerrs/g, request.params.channel);
+      response.send(data);
+    });
+  } catch (err) {
+    console.log(err);
+    response.send(err.message);
   }
 });
 
 
 // Get 2v2 scores.
-app.get ('/twovtwoscores', async (request, response) => {
+app.get ('/twovtwoscores/:channel', async (request, response) => {
   try {
-    if (!userIds['huskerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = 'HusKerrs';`);
+    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${request.params.channel}';`);
     client.release();
 
-    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills}`);
+    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills} ${res.rows[0].tname} ${res.rows[0].o1name} ${res.rows[0].o2name} ${userIds[res.rows[0].userid] && userIds[res.rows[0].userid]["two_v_two"]} ${userIds[res.rows[0].tname] && userIds[res.rows[0].tname]["two_v_two"]} ${userIds[res.rows[0].o1name] && userIds[res.rows[0].o1name]["two_v_two"]} ${userIds[res.rows[0].o2name] && userIds[res.rows[0].o2name]["two_v_two"]} ${tvtInt[request.params.channel]?true:false}`);
   } catch (err) {
     console.log(`Error getting 2v2 scores: ${err}`);
-    response.send('Error');
+    response.send(err.message);
   }
 });
 
 
 // Post
-app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
+app.get('/post/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
-    if (!userIds['HusKerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = 'HusKerrs';`);
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
+    }
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
+    }
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
+    }
     client.release();
 
     response.sendStatus(200);
@@ -820,18 +1078,422 @@ app.get('/post/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => 
 
 
 // Reset
-app.get('/post/reset', async (request, response) => {
+app.get('/post/:channel/reset', async (request, response) => {
   try {
-    if (!userIds['HusKerrs'].two_v_two) throw new Error(`2v2 not enabled.`);
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
 
     let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = 'HusKerrs';`);
+    await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.params.channel}';`);
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.get('tname')}';`)
+    }
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.get('tname')}';`)
+    }
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.get('tname')}';`)
+    }
     client.release();
 
     response.sendStatus(200);
   } catch (err) {
     console.log(`Error during 2v2 reset: ${err}`);
     response.sendStatus(500);
+  }
+});
+
+
+// Enable
+app.post('/post/:channel/enable', jsonParser, async (request, response) => {
+  try {
+    let status = request.body;
+    let updates = [];
+
+    status['hStatus'] = userIds[request.get('hname')] && status['hStatus'];
+    status['tStatus'] = userIds[request.get('tname')] && status['tStatus'];
+    status['o1Status'] = userIds[request.get('o1name')] && status['o1Status'];
+    status['o2Status'] = userIds[request.get('o2name')] && status['o2Status'];
+
+    if (userIds[request.get('hname')] && userIds[request.get('hname')]["two_v_two"] !== status["hStatus"]) {
+      userIds[request.get('hname')]["two_v_two"] = status["hStatus"];
+      updates[request.get('hname')] = status["hStatus"];
+      if (status["hStatus"]) {
+        console.log(request.get('hname'));
+        tvtInt[request.get('hname')] = setInterval(function(){ tvtscores(request.get('hname')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('hname')]);
+      }
+    }
+
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"] !== status["tStatus"]) {
+      userIds[request.get('tname')]["two_v_two"] = status["tStatus"];
+      updates[request.get('tname')] = status["tStatus"];
+      if (status["tStatus"]) {
+        console.log(request.get('tname'));
+        tvtInt[request.get('tname')] = setInterval(function(){ tvtscores(request.get('tname')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('tname')]);
+      }
+    }  
+
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"] !== status["o1Status"]) {
+      userIds[request.get('o1name')]["two_v_two"] = status["o1Status"];
+      updates[request.get('o1name')] = status["o1Status"];
+      if (status["o1Status"]) {
+        tvtInt[request.get('o1name')] = setInterval(function(){ tvtscores(request.get('o1name')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('o1name')]);
+      }
+    }  
+    
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"] !== status["o2Status"]) {
+      userIds[request.get('o2name')]["two_v_two"] = status["o2Status"];
+      updates[request.get('o2name')] = status["o2Status"];
+      if (status["o2Status"]) {
+        tvtInt[request.get('o2name')] = setInterval(function(){ tvtscores(request.get('o2name')) }, 30000);
+      } else {
+        clearInterval(tvtInt[request.get('o2name')]);
+      }
+    }
+
+    status["needsUpdate"] = false;
+
+    response.status(200);
+
+    if (!updates) {
+      response.send(status);
+      return;
+    }
+
+    let str = '';
+    let keys = Object.keys(updates);
+    
+    let client = await pool.connect();
+
+    for (let i = 0; i < keys.length; i++) {
+      str += `('${keys[i]}'::text, ${updates[keys[i]]}::bool)${i + 1 === keys.length?'':', '}`;
+
+      if (keys[i] === 'huskerrs') { bot.say('huskerrs', `!enable !score ${!updates['huskerrs']}`)};
+      bot.say(keys[i], `Score reporting ${updates[keys[i]]?'enabled':'disabled'}`);
+
+      let rows = await client.query(`SELECT * FROM twovtwo WHERE userid = '${keys[i]}';`);
+      if (rows.rows.length) {
+        await client.query(`UPDATE twovtwo SET hkills = 0, tkills = 0, o1kills = 0, o2kills = 0 WHERE userid = '${keys[i]}';`);
+      } else {
+        await client.query(`INSERT INTO twovtwo(hkills, tkills, o1kills, o2kills, userid) VALUES (0, 0, 0, 0, '${keys[i]}');`)
+      }
+
+      await client.query(`UPDATE allusers SET two_v_two = ${updates[keys[i]]}::bool WHERE user_id = '${keys[i]}'::text;`)
+    }
+    client.release();
+
+    response.send(status);
+  } catch (err) {
+    console.log('Enable function: ' + err);
+    response.sendStatus(500);
+  }
+});
+
+
+// Pause scores
+app.get('/tvtpause/:channel', (request, response) => {
+  try {
+    if (userIds[request.params.channel] && userIds[request.params.channel]["two_v_two"]) {
+      if (tvtInt[request.params.channel]) {
+        clearInterval(tvtInt[request.params.channel]);
+        delete tvtInt[request.params.channel];
+        response.sendStatus(200);
+      } else {
+        tvtInt[request.params.channel] = setInterval(function(){tvtscores(request.params.channel)}, 30000);
+        response.sendStatus(201);
+      }
+    }
+
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      if (tvtInt[request.get('tname')]) {
+        clearInterval(tvtInt[request.get('tname')]);
+        delete tvtInt[request.get('tname')];
+      } else {
+        tvtInt[request.get('tname')] = setInterval(function(){tvtscores(request.get('tname'))}, 30000);
+      }
+    }
+
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
+      if (tvtInt[request.get('o1name')]) {
+        clearInterval(tvtInt[request.get('o1name')]);
+        delete tvtInt[request.get('o1name')];
+      } else {
+        tvtInt[request.get('o1name')] = setInterval(function(){tvtscores(request.get('o1name'))}, 30000);
+      }
+    }
+
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
+      if (tvtInt[request.get('o2name')]) {
+        clearInterval(tvtInt[request.get('o2name')]);
+        delete tvtInt[request.get('o2name')];
+      } else {
+        tvtInt[request.get('o2name')] = setInterval(function(){tvtscores(request.get('o2name'))}, 30000);
+      }
+    }
+  } catch (err) {
+    console.log(`Error during 2v2 pause: ${err}`);
+    response.sendStatus(500);
+  }
+});
+
+
+// Receive scores
+app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
+  try {
+    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+
+    let client = await pool.connect();
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
+    if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
+      await tvtscores(request.get('tname'));
+    }
+    if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
+      await tvtscores(request.get('o1name'));
+    }
+    if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
+      await tvtscores(request.get('o2name'));
+    }
+    client.release();
+
+    await tvtscores(request.params.channel);
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(`Error during send: ${err}`);
+    response.sendStatus(500);
+  }
+})
+
+
+// Customs on.
+app.get('/customson/:user', async (request, response) => {
+  try {
+    let client;
+    if (!userIds[request.params.user.toLowerCase()]) {
+      console.log(`Adding user: ${request.params.user}`);
+      client = await pool.connect();
+      await client.query(`INSERT INTO allusers(user_id, customs, thruweb) VALUES('${request.params.user.toLowerCase()}', true, true)`);
+      await client.query(`INSERT INTO customs(maps, map_count, multipliers, user_id) VALUES('{"placement": [], "kills": []}'::json, 0, '0 0', '${request.params.user.toLowerCase()}');`);
+      client.release(); 
+      userIds[request.params.user.toLowerCase()] = { user_id: request.params.user.toLowerCase(), customs: true };
+      response.send(`Added ${request.params.user} to database and enabled customs.`);
+    } else if (userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs already enabled for ${request.params.user}.`);
+      return;
+    } else {
+      client = await pool.connect();
+      await client.query(`UPDATE allusers SET customs = true WHERE user_id = '${request.params.user.toLowerCase()}';`);
+      client.release();
+      userIds[request.params.user.toLowerCase()].customs = true;
+      response.send(`Customs enabled for ${request.params.user}.`);
+    }
+  } catch (err) {
+    console.log(`Error customson ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Customs off.
+app.get('/customsoff/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE allusers SET customs = false WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    userIds[request.params.user.toLowerCase()].customs = false;
+    response.send(`Customs disabled for ${request.params.user}.`);
+  } catch (err) {
+    console.log(`Error customsoff ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Set maps.
+app.get('/setmaps/:user/:count', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE customs SET map_count = ${request.params.count} WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Set maps to ${request.params.count} for ${request.params.user}.`);
+  } catch (err) {
+    console.log(`Error setmaps ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Set placement.
+app.get('/setplacement/:user/:placement', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE customs SET multipliers = '${decodeURIComponent(request.params.placement)}' WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Set placement for ${request.params.user}.`);
+  } catch (err) {
+    console.log(`Error setplacement ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Add map.
+app.get('/addmap/:user/:place/:kills', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    let placement = parseInt(request.params.place);
+    let kills = parseInt(request.params.kills);
+    let multis = res.rows[0].multipliers.split(' ');
+    let score;
+    for (let i = multis.length/2; i >= 0; i--) {
+      if (placement >= parseInt(multis[2*i])) {
+        score = kills * parseFloat(multis[(2*i)+1]);
+        break;
+      }
+    }
+    res.rows[0].maps.placement.push(placement);
+    res.rows[0].maps.kills.push(kills);
+    await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    let place;
+    if (placement > 3 && placement < 21) {
+      place = `${placement}th`;
+    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '1') {
+      place = `${placement}st`;
+    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '2') {
+      place = `${placement}nd`;
+    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '3') {
+      place = `${placement}rd`;
+    } else {
+      place = `${placement}th`;
+    }
+    response.send(`Team ${request.params.user} got ${place} place with ${kills} kills for ${score.toFixed(2)} points!`);
+  } catch (err) {
+    console.log(`Error addmap ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Remove map.
+app.get('/removemap/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    res.rows[0].maps.placement.length = res.rows[0].maps.placement.length?res.rows[0].maps.placement.length-1:0;
+    res.rows[0].maps.kills.length = res.rows[0].maps.kills.length?res.rows[0].maps.kills.length-1:0;
+    await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Last map for ${request.params.user} has been removed.`);
+  } catch (err) {
+    console.log(`Error removemap ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Map count.
+app.get('/mc/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    let str;
+    if (res.rows[0].maps.placement.length == res.rows[0].map_count) {
+      str = `All maps have been played.`;
+    } else {
+      str = `Map ${res.rows[0].maps.placement.length + 1} of ${res.rows[0].map_count}`;
+    }
+    response.send(str);
+  } catch (err) {
+    console.log(`Error mapcount ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Score.
+app.get('/score/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    let score = [];
+    let total = 0;
+    let multis = res.rows[0].multipliers.split(' ');
+    for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
+      let placement;
+      for (let j = multis.length/2; j >= 0; j--) {
+        if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
+          placement = parseFloat(multis[2*j]);
+          break;
+        }
+      }
+      score.push(`Map ${i + 1}: ${(res.rows[0].maps.kills[i] * placement).toFixed(2)}`);
+      total += res.rows[0].maps.kills[i] * placement;
+    }
+    let str = score.join(' | ');
+    if (score.length < res.rows[0].map_count) str += score.length?` | Map ${score.length + 1}: TBD`:`Map 1: TBD`;
+    str += ` | Total: ${total.toFixed(2)} pts`;
+    response.send(str);
+  } catch (err) {
+    console.log(`Error score ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
+  }
+});
+
+
+// Reset maps.
+app.get('/resetmaps/:user', async (request, response) => {
+  try {
+    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
+      response.send(`Customs not enabled for ${request.params.user}.`);
+      return;
+    }
+    let client = await pool.connect();
+    await client.query(`UPDATE customs SET maps = '{"placement": [], "kills": []}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
+    client.release();
+    response.send(`Maps for ${request.params.user} have been reset.`);
+  } catch (err) {
+    console.log(`Error resetmaps ${request.params.user}: ${err.message}`);
+    response.send(`There was an error. Yell at zHekLeR to look into it.`);
   }
 });
 
@@ -877,8 +1539,16 @@ app.get('/stats/:id', async (req, response) => {
 async function stats(username, platform) {
   try {
 
+    let uriUser = encodeURIComponent(username);
+
     // Get stats.
-    let data = await lifetime(username, platform);
+    let data = await lifetime(uriUser, platform);
+
+    if (data === 'Not permitted: not allowed') {
+      return 'Account is private.';
+    } else {
+      data = JSON.parse(data);
+    }
 
     // Format stats.
     let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;
@@ -888,7 +1558,7 @@ async function stats(username, platform) {
     let kills = data.lifetime.mode.br.properties.kills;
 
     // Return response.
-    return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
+    return `${data.username} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
 
   } catch (err) {
     try {
@@ -906,7 +1576,7 @@ async function stats(username, platform) {
       return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
     } catch (err) {
       console.log(`Stats: ${err}`);
-      return;
+      return err.toString().includes('permitted')?'Account is private.':'Error getting stats.';
     }
   }
 };
@@ -996,7 +1666,6 @@ app.get('/addmatch/:matchid/:userid', async (req, response) => {
     response.send(`Add match error.`);
   }
 });
-
 
 
 // Get user's last match info.
@@ -1316,7 +1985,7 @@ async function gamemodes(username) {
 // Pull number of semtex kills from COD API - only for HusK currently.
 async function semtex() {
   try {
-    let data = await lifetime('HusKerrs, uno');
+    let data = await lifetime('HusKerrs', 'uno');
     let semtex = data.lifetime.itemData.lethals['equip_semtex'].properties.kills;
     return `${semtex} kills with semtex huskKing`;
   } catch (err) {
@@ -1396,60 +2065,62 @@ app.get('/wordlelb', async (req, response) => {
 async function updateMatches() {
   try {
     Object.keys(userIds).forEach((key, i) => {
-      setTimeout(async () => {
-        try {
-          // Get time from a week ago and set base timestamp.
-          console.log("Updating matches for " + userIds[key].acti_id);
-          // @ts-ignore
-          let weekAgo = DateTime.now().minus({weeks:1})/1000;
-          let lastTimestamp = 0;
-          
-          // Clear matches which are older than a week.
-          let client = await pool.connect();
-          await client.query(`DELETE FROM matches WHERE timestamp < ${weekAgo};`);
-          
-          // If match cache for this user is empty, set it.
-          if (!mCache[userIds[key].acti_id].length) {
-            let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}';`);
-            mCache[userIds[key].acti_id] = res.rows;
-          }
-          
-          // Release client.
-          client.release();
-          
-          // Update timestamp of last match.
-          for (let i = 0; i < mCache[userIds[key].acti_id].length; i++) {
-            lastTimestamp = mCache[userIds[key].acti_id][i].timestamp > lastTimestamp?mCache[userIds[key].acti_id][i].timestamp:lastTimestamp;
-          }
-          
-          // Fetch last 20 matches for user from COD API.
-          let data;
-          try { 
-            data = await last20(userIds[key].acti_id, userIds[key].platform); 
-            if (!data) throw new Error('Matches undefined.');
-            await update(data.matches, userIds[key], lastTimestamp);
+      if (userIds[key].matches) {
+        setTimeout(async () => {
+          try {
+            // Get time from a week ago and set base timestamp.
+            console.log("Updating matches for " + userIds[key].acti_id);
+            // @ts-ignore
+            let weekAgo = DateTime.now().minus({weeks:1})/1000;
+            let lastTimestamp = 0;
             
-            // Get stats for each match and push to database.
-            console.log(`Updated matches for ${userIds[key].acti_id}.`);
-          }
-          catch (err) { setTimeout(async () => { 
+            // Clear matches which are older than a week.
+            let client = await pool.connect();
+            await client.query(`DELETE FROM matches WHERE timestamp < ${weekAgo};`);
+            
+            // If match cache for this user is empty, set it.
+            if (!mCache[userIds[key].acti_id].length) {
+              let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}';`);
+              mCache[userIds[key].acti_id] = res.rows;
+            }
+            
+            // Release client.
+            client.release();
+            
+            // Update timestamp of last match.
+            for (let i = 0; i < mCache[userIds[key].acti_id].length; i++) {
+              lastTimestamp = mCache[userIds[key].acti_id][i].timestamp > lastTimestamp?mCache[userIds[key].acti_id][i].timestamp:lastTimestamp;
+            }
+            
+            // Fetch last 20 matches for user from COD API.
+            let data;
             try { 
-              console.log(`Error: ${userIds[key].acti_id}, retrying: ${err}`); 
               data = await last20(userIds[key].acti_id, userIds[key].platform); 
-              await update(data.matches, userIds[key], lastTimestamp); 
-
+              if (!data) throw new Error('Matches undefined.');
+              await update(data.matches, userIds[key], lastTimestamp);
+              
               // Get stats for each match and push to database.
               console.log(`Updated matches for ${userIds[key].acti_id}.`);
-            } 
-            catch (err) { console.log(`Error during retry: ${err}`) } 
-          }, 20000); }
+            }
+            catch (err) { setTimeout(async () => { 
+              try { 
+                console.log(`Error: ${userIds[key].acti_id}, retrying: ${err}`); 
+                data = await last20(userIds[key].acti_id, userIds[key].platform); 
+                await update(data.matches, userIds[key], lastTimestamp); 
 
-        
-        } catch (err) {
-          console.log(`Updating matches: ${err}`);
-          return; 
-        }
-      }, i*20000);
+                // Get stats for each match and push to database.
+                console.log(`Updated matches for ${userIds[key].acti_id}.`);
+              } 
+              catch (err) { console.log(`Error during retry: ${err}`) } 
+            }, 20000); }
+
+          
+          } catch (err) {
+            console.log(`Updating matches: ${err}`);
+            return; 
+          }
+        }, i*20000);
+      }
     });
 
   } catch (err) {
@@ -1498,7 +2169,7 @@ async function update(matches, user, lastTimestamp) {
       deaths = matches[i].playerStats.deaths;
       
       // Set game mode.
-      game_mode = game_modes[matches[i].mode];
+      game_mode = Object.keys(game_modes).includes(matches[i].mode)?game_modes[matches[i].mode]:matches[i].mode;
 
       // Set gulag stats.
       gulag_kills = 0;
@@ -1715,9 +2386,15 @@ async function brookescribers() {
       let res = await client.query(`SELECT * FROM matches WHERE user_id = '${temp[i].acti_id}';`);
       mCache[temp[i].acti_id] = res.rows;
 
-      // @ts-ignore
-      bot.channels.push(temp[i].user_id);
-      gcd[temp[i].user_id] = { };
+      if (temp[i].twitch) {
+        // @ts-ignore
+        bot.channels.push(temp[i].user_id);
+        gcd[temp[i].user_id] = { };
+        
+        if (userIds[temp[i].user_id]["two_v_two"]) {
+          tvtInt[temp[i].user_id] = setInterval(function() {tvtscores(temp[i].user_id)}, 30000);
+        }
+      }
     };
 
     // Set the 5 minute interval for each player being tracked and get their active elements.
@@ -1728,6 +2405,8 @@ async function brookescribers() {
         console.log(`Match intervals: ${err}`);
       }
     }, 300000);
+
+    setInterval(function() { duelExpiration(); }, 5000);
 
     // Release client.
     client.release();

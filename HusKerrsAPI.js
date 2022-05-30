@@ -623,8 +623,6 @@ bot.on('chat', async (channel, tags, message) => {
       
       case '!duel': 
         if (!userIds[channel.substring(1)].duel) break;
-        console.log(dcd[tags["username"]]);
-        console.log(Date.now());
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
         client = await pool.connect();
@@ -640,6 +638,7 @@ bot.on('chat', async (channel, tags, message) => {
               console.log(2);
               await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
               bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+              dcd[tags["username"]] = Date.now() + 15000;
             } else {
               console.log(3);
               bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
@@ -648,13 +647,13 @@ bot.on('chat', async (channel, tags, message) => {
             console.log(4);
             await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}');`);
             bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+            dcd[tags["username"]] = Date.now() + 15000;
           }
         } else {
           console.log(5);
           bot.say(channel, `@${tags["username"]} : This person has already challenged someone / been challenged.`);
         }
         client.release();
-        dcd[tags["username"]] = Date.now() + 15000;
         break;
 
       case '!cancel': 
@@ -1008,6 +1007,50 @@ app.get('/', (request, response) => {
   const homepage = fs.readFileSync("./page.html").toString('utf-8');
   response.send(homepage);
 });
+
+
+// States.
+let states = [];
+
+
+// Redirect.
+app.get('/redirect', (request, response) => {
+  response.sendFile(path.join(__dirname, 'twitchtest.html'));
+});
+
+
+// 
+app.get('/twitchtest',  (request, response) => {
+  let state = makeid(15);
+  states.push(state);
+  response.send(`<!DOCTYPE html><html><h1>Please authenticate with Twitch</h1><a href="https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${process.env.CLIENT_ID}&redirect_uri=http://localhost:6969/redirect&scope=&state=${state}">Click here to authorize</a></html>`);
+  setTimeout(function() {
+    if (states.indexOf(state) > -1) states.splice(states.indexOf(state), 1);
+  }, 30000);
+});
+
+
+// Verify state.
+app.get('/verify', (request, response) => {
+  try {
+
+  } catch (err) {
+    console.log(err);
+    response.send(err);
+  }
+});
+
+
+// Random string.
+function makeid(length) {
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 
 // 2v2

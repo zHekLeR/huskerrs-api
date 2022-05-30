@@ -111,6 +111,7 @@ const bot = new tmi.Client({
 });
 
 let tvtInt = {};
+let tvtUpdate = {};
 
 // Logs the Twitch bot being initialized.
 bot.on('logon', () => {
@@ -536,6 +537,7 @@ bot.on('chat', async (channel, tags, message) => {
         client.release();
         userIds[channel.substring(1)]["two_v_two"] = true;
         tvtInt[channel.substring(1)] = setInterval(function() {tvtscores(channel.substring(1))}, 30000);
+        tvtUpdate[channel.substring(1)] = Date.now();
         break;
 
       case '!2v2off':
@@ -551,6 +553,7 @@ bot.on('chat', async (channel, tags, message) => {
         userIds[channel.substring(1)]["two_v_two"] = false;
         clearInterval(tvtInt[channel.substring(1)]);
         delete tvtInt[channel.substring(1)];
+        delete tvtUpdate[channel.substring(1)];
         tvtInt = [];
         break;
       
@@ -747,14 +750,17 @@ bot.on('chat', async (channel, tags, message) => {
   }
 });
 
-async function tvtscores(channel) {
+async function tvtscores(channel, force = false) {
   try {
-    let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel}';`);
-    client.release();
-    let us = res.rows[0].hkills + res.rows[0].tkills;
-    let opp = res.rows[0].o1kills + res.rows[0].o2kills;
-    bot.say(channel, `${us} - ${opp}${(us==6 && opp==9)?` Nice`:``} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
+    if (!force && tvtUpdate[channel] < Date.now()) {
+      let client = await pool.connect();
+      let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel}';`);
+      client.release();
+      let us = res.rows[0].hkills + res.rows[0].tkills;
+      let opp = res.rows[0].o1kills + res.rows[0].o2kills;
+      bot.say(channel, `${us} - ${opp}${(us==6 && opp==9)?` Nice`:``} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
+      tvtUpdate[channel] = Date.now() + 5000;
+    }
   } catch (err) {
     console.log(`Error during tvtscores: ${err}`);
   }
@@ -1120,8 +1126,11 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
       if (status["hStatus"]) {
         console.log(request.get('hname'));
         tvtInt[request.get('hname')] = setInterval(function(){ tvtscores(request.get('hname')) }, 30000);
+        tvtUpdate[request.get('hname')] = Date.now();
       } else {
         clearInterval(tvtInt[request.get('hname')]);
+        delete tvtInt[request.get('hname')];
+        delete tvtUpdate[request.get('hname')];
       }
     }
 
@@ -1131,8 +1140,11 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
       if (status["tStatus"]) {
         console.log(request.get('tname'));
         tvtInt[request.get('tname')] = setInterval(function(){ tvtscores(request.get('tname')) }, 30000);
+        tvtUpdate[request.get('tname')] = Date.now();
       } else {
         clearInterval(tvtInt[request.get('tname')]);
+        delete tvtInt[request.get('tname')];
+        delete tvtUpdate[request.get('tname')];
       }
     }  
 
@@ -1141,8 +1153,11 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
       updates[request.get('o1name')] = status["o1Status"];
       if (status["o1Status"]) {
         tvtInt[request.get('o1name')] = setInterval(function(){ tvtscores(request.get('o1name')) }, 30000);
+        tvtUpdate[request.get('o1name')] = Date.now();
       } else {
         clearInterval(tvtInt[request.get('o1name')]);
+        delete tvtInt[request.get('o1name')];
+        delete tvtUpdate[request.get('o1name')];
       }
     }  
     
@@ -1151,8 +1166,11 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
       updates[request.get('o2name')] = status["o2Status"];
       if (status["o2Status"]) {
         tvtInt[request.get('o2name')] = setInterval(function(){ tvtscores(request.get('o2name')) }, 30000);
+        tvtUpdate[request.get('o2name')] = Date.now();
       } else {
         clearInterval(tvtInt[request.get('o2name')]);
+        delete tvtInt[request.get('o2name')];
+        delete tvtUpdate[request.get('o2name')];
       }
     }
 
@@ -1251,19 +1269,19 @@ app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
     await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
-      await tvtscores(request.get('tname'));
+      await tvtscores(request.get('tname'), true);
     }
     if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
-      await tvtscores(request.get('o1name'));
+      await tvtscores(request.get('o1name'), true);
     }
     if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
-      await tvtscores(request.get('o2name'));
+      await tvtscores(request.get('o2name'), true);
     }
     client.release();
 
-    await tvtscores(request.params.channel);
+    await tvtscores(request.params.channel, true);
 
     response.sendStatus(200);
   } catch (err) {

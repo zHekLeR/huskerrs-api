@@ -12,8 +12,10 @@
             "access_token": pieces[0].substring(pieces[0].indexOf('=') + 1),
             "state": pieces[2].substring(pieces[2].indexOf('=') + 1)
         }
-    }).then(res => {
-        document.getElementById("data").innerHTML = res.body;
+    }).then(resp => resp.text())
+    .then(res => {
+        console.log(res);
+        document.getElementById("data").innerHTML = res;
     }).catch(err => {
         console.log(err);
         document.getElementById("data").innerHTML = err;

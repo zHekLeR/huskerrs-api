@@ -623,34 +623,32 @@ bot.on('chat', async (channel, tags, message) => {
       
       case '!duel': 
         if (!userIds[channel.substring(1)].duel) break;
-        console.log(dcd[tags["username"]]);
-        console.log(Date.now());
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
+
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
+
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
         let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
+
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
-          console.log(1);
           let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+
           if (res3.rows.length) {
+
             if (!res3.rows[0].oppid || res3.rows[0].oppid === ' ') {
-              console.log(2);
               await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
               bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
               dcd[tags["username"]] = Date.now() + 15000;
             } else {
-              console.log(3);
               bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
             }
           } else {
-            console.log(4);
             await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}');`);
             bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
             dcd[tags["username"]] = Date.now() + 15000;
           }
         } else {
-          console.log(5);
           bot.say(channel, `@${tags["username"]} : This person has already challenged someone / been challenged.`);
         }
         client.release();
@@ -660,7 +658,7 @@ bot.on('chat', async (channel, tags, message) => {
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
-        if (res.rows.length) {
+        if (res.rows.length && res.rows[0].oppid !== ' ') {
           await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE userid = '${tags["username"]}';`);
           bot.say(channel, `@${tags["username"]} : You have cancelled the duel.`);
         }
@@ -1000,6 +998,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'node_modules')));
+import cookieParser from 'cookie-parser';
+app.use(cookieParser());
 
 
 // Home page.
@@ -1020,20 +1020,51 @@ app.get('/redirect', (request, response) => {
 
 
 // 
-app.get('/twitchtest',  (request, response) => {
-  let state = makeid(15);
-  states.push(state);
-  response.send(`<!DOCTYPE html><html><h1>Please authenticate with Twitch</h1><a href="https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${process.env.CLIENT_ID}&redirect_uri=http://localhost:6969/redirect&scope=&state=${state}">Click here to authorize</a></html>`);
-  setTimeout(function() {
-    if (states.indexOf(state) > -1) states.splice(states.indexOf(state), 1);
-  }, 30000);
+app.get('/twitchtest/:channel', async (request, response) => {
+  let cookies = request.cookies;
+  if (cookies["auth"]) {
+    got('https://id.twitch.tv/oauth2/validate', {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${cookies["auth"]}`
+      }
+    }).then(async res => {
+      if (res.statusCode === 200) {
+        let client = await pool.connect();
+        let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+        if (rows[0].perms.split(',').includes(request.params.channel)) {
+          fs.readFile(path.join(__dirname, '2v2test.txt'), 'utf8', (err, data) => {
+            if (err) {
+              throw new Error(err.message);
+            }
+
+            data = data.replace(/HusKerrs/g, request.params.channel);
+            response.send(data);
+          });
+        } else {
+          response.send("You do not have access to this page."); 
+        }
+      }
+    }).catch(err => {
+      console.log(err);
+      response.send(err);
+    });
+
+  } else {
+    let state = makeid(15);
+    states[state] = request.params.channel;
+    response.send(`<!DOCTYPE html><html><h1>Please authenticate with Twitch</h1><a href="https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${process.env.CLIENT_ID}&redirect_uri=http://localhost:6969/redirect&scope=&state=${state}">Click here to authorize</a></html>`);
+    setTimeout(function() {
+      if (states.indexOf(state) > -1) states.splice(states.indexOf(state), 1);
+    }, 30000);
+  }
 });
 
 
 // Verify state.
 app.get('/verify', (request, response) => {
   try {
-    if (states.indexOf(request.get("state")) >= 0) {
+    if (Object.keys(states).includes(request.get("state"))) {
       got('https://id.twitch.tv/oauth2/token', {
         method: "POST",
         headers: {
@@ -1041,16 +1072,36 @@ app.get('/verify', (request, response) => {
         },
         body: `client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=client_credentials`
       }).then(resp => {
-        console.log(resp.body);
         got('https://api.twitch.tv/helix/users?', {
           method: "GET",
           headers: {
             'Authorization': `Bearer ${request.get("access_token")}`,
             'Client-Id': process.env.CLIENT_ID
           }
-        }).then(res => {
-          console.log(res.body);
-          response.send(res.body);
+        }).then(async res => {
+          let details = JSON.parse(res.body).data;
+          let client = await pool.connect();
+          let rows = (await client.query(`SELECT * FROM permissions WHERE userid = '${details[0]["display_name"].toLowerCase()}';`)).rows;
+          if (rows.length) {
+            let perms = rows[0].perms.split(',');
+            if (!perms.includes(states[request.get("state")])) {
+              response.send("You do not have access to this page.");
+            } else {
+              await client.query(`UPDATE permissions SET bearer = '${JSON.parse(resp.body)["access_token"]}' WHERE userid = '${details[0]["display_name"].toLowerCase()}';`);
+              response.setHeader("Set-Cookie", `auth=${JSON.parse(resp.body)["access_token"]}; Secure; HttpOnly`);
+              fs.readFile(path.join(__dirname, '2v2test.txt'), 'utf8', (err, data) => {
+                if (err) {
+                  throw new Error(err.message);
+                }
+
+                data = data.replace(/HusKerrs/g, states[request.get("state")]);
+                response.send(data);
+              });
+            }
+          } else {
+            response.send("You do not have access to this page.");
+          }
+          client.release();
         }).catch(err => {
           console.log(err);
           response.send(err);

@@ -628,8 +628,8 @@ bot.on('chat', async (channel, tags, message) => {
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
 
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
-        let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[1].toLowerCase()}';`);
+        let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[1].toLowerCase()}';`);
 
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
           let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);

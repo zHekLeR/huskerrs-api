@@ -623,13 +623,13 @@ bot.on('chat', async (channel, tags, message) => {
       
       case '!duel': 
         if (!userIds[channel.substring(1)].duel) break;
+        console.log(dcd[tags["username"]]);
+        console.log(Date.now());
         if (dcd[tags["username"]] && dcd[tags["username"]] < Date.now()) break;
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[0].toLowerCase()}';`);
         let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[0].toLowerCase()}';`);
-        console.log(res.rows);
-        console.log(res2.rows);
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
           console.log(1);
           let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
@@ -732,7 +732,7 @@ bot.on('chat', async (channel, tags, message) => {
       case '!duellbratio':
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 2) AS rr ORDER BY percent ASC LIMIT 3;`);
+        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 5) AS rr ORDER BY percent DESC LIMIT 3;`);
         client.release();
         bot.say(channel, `Duel Leaderboard: Ratio | ${res.rows[0].userid}: ${res.rows[0].percent}% (${res.rows[0].wins + res.rows[0].losses}) | ${res.rows[1].userid}: ${res.rows[1].percent}% (${res.rows[1].wins + res.rows[1].losses}) | ${res.rows[2].userid}: ${res.rows[2].percent}% (${res.rows[2].wins + res.rows[2].losses})`)
         break;
@@ -1033,7 +1033,36 @@ app.get('/twitchtest',  (request, response) => {
 // Verify state.
 app.get('/verify', (request, response) => {
   try {
-
+    if (states.indexOf(request.get("state")) >= 0) {
+      got('https://id.twitch.tv/oauth2/token', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=client_credentials`
+      }).then(resp => {
+        console.log(resp.body);
+        got('https://api.twitch.tv/helix/users?', {
+          method: "GET",
+          headers: {
+            'Authorization': `Bearer ${request.get("access_token")}`,
+            'Client-Id': process.env.CLIENT_ID
+          }
+        }).then(res => {
+          console.log(res.body);
+          response.send(res.body);
+        }).catch(err => {
+          console.log(err);
+          response.send(err);
+        });
+      }).catch(err => {
+        console.log(err);
+        response.send(err);
+      });
+    } else {
+      console.log("Invalid state.");
+      response.send("Invalid state.");
+    }
   } catch (err) {
     console.log(err);
     response.send(err);

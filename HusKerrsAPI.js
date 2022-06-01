@@ -1692,15 +1692,14 @@ async function stats(username, platform) {
   try {
 
     let uriUser = encodeURIComponent(username);
+    console.log(uriUser);
 
     // Get stats.
     let data = await lifetime(uriUser, platform);
 
     if (data === 'Not permitted: not allowed') {
       return 'Account is private.';
-    } else {
-      data = JSON.parse(data);
-    }
+    } 
 
     // Format stats.
     let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;
@@ -1713,23 +1712,8 @@ async function stats(username, platform) {
     return `${data.username} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
 
   } catch (err) {
-    try {
-      // Get stats.
-      let data = await lifetime(username, platform);
-
-      // Format stats.
-      let time = `${(data.lifetime.mode.br.properties.timePlayed/3600).toFixed(2)} Hours`;
-      let lk = data.lifetime.mode.br.properties.kdRatio.toFixed(2);
-      let wk = data.weekly.mode.br_all?data.weekly.mode.br_all.properties.kdRatio.toFixed(2):'-';
-      let wins = data.lifetime.mode.br.properties.wins;
-      let kills = data.lifetime.mode.br.properties.kills;
-
-      // Return response.
-      return `${decodeURIComponent(username)} | Time Played: ${time} | Lifetime KD: ${lk} | Weekly KD: ${wk} | Total Wins: ${wins} | Total Kills: ${kills}`;
-    } catch (err) {
-      console.log(`Stats: ${err}`);
-      return err.toString().includes('private')?'Account is private.':'Error getting stats.';
-    }
+    console.log(err);
+    return err.toString().includes('private')?'Account is private.':'Error getting stats.';
   }
 };
 

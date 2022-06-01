@@ -1417,8 +1417,8 @@ app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
 // Wins for c_o_l_e
 app.get('/wins/:user', async (request, response) => {
   try {
-    let data = JSON.parse(await lifetime(request.params.user, 'uno'));
-    return (data.lifetime.mode.br.properties.wins);
+    let data = await lifetime(encodeURIComponent(request.params.user), 'uno');
+    response.send(`I got ${data.lifetime.mode.br.properties.wins} dubskies!`);
   } catch (err) {
     console.log(err);
   }

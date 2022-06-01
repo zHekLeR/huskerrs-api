@@ -2231,7 +2231,7 @@ async function updateMatches() {
             // Fetch last 20 matches for user from COD API.
             let data;
             try { 
-              data = await last20(userIds[key].acti_id, userIds[key].platform); 
+              data = await last20(encodeURIComponent(userIds[key].acti_id), userIds[key].platform); 
               if (!data) throw new Error('Matches undefined.');
               await update(data.matches, userIds[key], lastTimestamp);
               
@@ -2241,7 +2241,7 @@ async function updateMatches() {
             catch (err) { setTimeout(async () => { 
               try { 
                 console.log(`Error: ${userIds[key].acti_id}, retrying: ${err}`); 
-                data = await last20(userIds[key].acti_id, userIds[key].platform); 
+                data = await last20(encodeURIComponent(userIds[key].acti_id), userIds[key].platform); 
                 await update(data.matches, userIds[key], lastTimestamp); 
 
                 // Get stats for each match and push to database.

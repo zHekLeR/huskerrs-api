@@ -1411,7 +1411,18 @@ app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
     console.log(`Error during send: ${err}`);
     response.sendStatus(500);
   }
-})
+});
+
+
+// Wins for c_o_l_e
+app.get('/wins/:user', async (request, response) => {
+  try {
+    let data = JSON.parse(await lifetime(request.params.user, 'uno'));
+    return (data.lifetime.mode.br.properties.wins);
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 
 // Customs on.

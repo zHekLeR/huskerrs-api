@@ -2293,6 +2293,7 @@ async function update(matches, user, lastTimestamp) {
             
       // Set placement.
       placement = String(matches[i].playerStats.teamPlacement);
+      console.log(placement);
       if (!placement) {
         placement = "-";
       } else {

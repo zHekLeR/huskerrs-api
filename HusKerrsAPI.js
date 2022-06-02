@@ -580,7 +580,7 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!pred':
         if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
-        for (let i = 0; i < 4; i++) bot.say(channel, 'PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk ')
+        for (let i = 0; i < 3; i++) bot.say(channel, `${i == 0?'/announcegreen':i == 1?'/announceblue':'/announcepurple'} PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk `)
         break;
 
       case '!timeout':

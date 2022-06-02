@@ -626,6 +626,10 @@ bot.on('chat', async (channel, tags, message) => {
         if (dcd[tags["username"]] && dcd[tags["username"]] > Date.now()) break;
 
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
+        if (tags["username"] === splits[1].toLowerCase()) {
+          bot.say(channel, `@${tags["username"]} : You cannot duel yourself.`);
+          break;
+        }
 
         client = await pool.connect();
         res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[1].toLowerCase()}';`);

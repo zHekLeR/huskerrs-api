@@ -2296,8 +2296,8 @@ async function update(matches, user, lastTimestamp) {
       if (!placement) {
         placement = "-";
       } else {
-        placement = placement.length==3?placement.substring(0, 1):placement.substring(0,2);
-        if (placement.length == 2 && placement.charAt(0) == '1') {
+        placement = placement.length>=3?placement.substring(0, 1):placement.substring(0,placement.length - 1);
+        if (placement.length >= 2 && placement.charAt(placement.length - 2) == '1') {
           placement += 'th';
         } else {
           placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)==='2'?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';

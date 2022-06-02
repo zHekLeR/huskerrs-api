@@ -574,7 +574,7 @@ bot.on('chat', async (channel, tags, message) => {
         break;
       
       case '!check':
-        if (!tags['mod'] && !vips.includes(tags['username'])) break;
+        if (!tags['mod'] && !vips.includes(tags['username']) && channel.substring(1) !== tags["username"]) break;
         bot.say(channel, await stats(message.substring(message.indexOf(' ') + 1), 'uno'));
         break;
 

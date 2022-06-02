@@ -580,7 +580,10 @@ bot.on('chat', async (channel, tags, message) => {
 
       case '!pred':
         if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
-        for (let i = 0; i < 3; i++) bot.say(channel, `${i == 0?'/announcegreen':i == 1?'/announceblue':'/announcepurple'} PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk `)
+        let str = `PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk `;
+        bot.say(channel, `/announcegreen ${str}`);
+        bot.say(channel, `/announceblue ${str}`);
+        bot.say(channel, `/announcepurple ${str}`);
         break;
 
       case '!timeout':
@@ -734,7 +737,7 @@ bot.on('chat', async (channel, tags, message) => {
       case '!duellbratio':
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 5) AS rr ORDER BY percent DESC LIMIT 3;`);
+        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 10) AS rr ORDER BY percent DESC LIMIT 3;`);
         client.release();
         bot.say(channel, `Duel Leaderboard: Ratio | ${res.rows[0].userid}: ${res.rows[0].percent}% (${res.rows[0].wins + res.rows[0].losses}) | ${res.rows[1].userid}: ${res.rows[1].percent}% (${res.rows[1].wins + res.rows[1].losses}) | ${res.rows[2].userid}: ${res.rows[2].percent}% (${res.rows[2].wins + res.rows[2].losses})`)
         break;

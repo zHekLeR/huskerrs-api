@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>zHekBot - Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+    box-sizing: border-box;
+  margin: 0;
+    font-family: Arial;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  max-height: 5vh;
+  padding: 0vh 1vw;
+  margin: 0;
+  background-color: green;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.content {
+  max-width: 50%;
+  background: white;
+  padding: 25px;
+  margin-left: 25%;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100vw;
+  max-height: fit-content;
+  background-color: green;
+  color: white;
+  text-align: center;
+  padding: 1vh 1vw;
+  font-size: auto;
+}
+
+#twitch {
+    background-color: #9146ff;
+    border-radius: 10px;
+}
+
+.button {
+  background-color: green;
+  border: 1px solid green;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, .1) 0 2px 4px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  outline: 0;
+  padding: 10px 25px;
+  margin: 5px;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 150ms, box-shadow 150ms;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.button:hover {
+  box-shadow: rgba(0, 0, 0, .15) 0 3px 9px 0;
+  transform: translateY(-2px);
+}
+
+img { 
+  max-height: 5vh;
+  width: auto; 
+}
+
+</style>
+</head>
+
+<body>
+  <div class="navbar">
+    <a href="/"><img href="/" src="/images/Logo.png" style="float: left; padding-right: 0.3vw; cursor: pointer;"><button style="background: green; border: none; font-size: 3.25vh; padding-top: 0.5vh; color: white; cursor: pointer;">zHekBot</button></a>
+    <a href="/login" id="twitch" style="padding: 0vh 0.35vw;">
+        <img src="/images/Twitch.png" style="float: left; padding: 0.4vh 0vw;">
+        <button style="border: none; font-size: 2.65vh; color: white; background-color: #9146ff; cursor: pointer; padding-top: 0.7vh;">Login to Twitch</button>
+    </a>
+</div>
+<div class="content">
+<h1>Please authenticate with Twitch</h1>
+<a href="https://id.twitch.tv/oauth2/authorize?client_id=${process.env.CLIENT_ID}&response_type=token&force_verify=true&redirect_uri=https://www.zhekbot.com/redirect&scope=&state=${state}"><div class="button">Click here to login</div></a>
+<br>
+<p>Note that this is only to verify your account; no permissions are being requested. </p>
+</div>
+<footer class="footer">Any questions / issues / suggestions? The best way to contact me is on Twitch (zHekLeR) or Discord (zHekLeR#4857).</footer>
+</body>
+</html>

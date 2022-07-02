@@ -19,7 +19,6 @@ const r = '🔴';
 
 // Define arrays of possible words and allowed words.
 import fs from 'fs';
-import { stringify } from 'querystring';
 const possible = fs.readFileSync("./games/possible.txt").toString('utf-8').split("\n");
 const allowed = fs.readFileSync("./games/allowed.txt").toString('utf-8').split("\n");
 
@@ -145,11 +144,11 @@ async function wordleGuess(id, guess) {
         } else {
         
             // Check the accuracy of the guessed word.
-            let accuracy = check(user.word, guess);
+            let accuracy = check(user.word, guess.toLowerCase());
             
             // Increment user stats for current round.
             user.remain--;
-            user.guess += guess;
+            user.guess += guess.toLowerCase();
 
             // Determine response.
             if (accuracy.correct) {
@@ -170,13 +169,13 @@ async function wordleGuess(id, guess) {
 
                     // User has some guesses remaining. Update Wordle database and set response string.
                     await client.query(`UPDATE wordle SET remain = ${user.remain}, guess = '${user.guess}', checks = '${accuracy.result}' WHERE user_id = '${id}';`);
-                    resStr = `@${id}: You guessed ${guess}. The result is ${accuracy.result}. You have ${user.remain} guesses remaining.`;
+                    resStr = `@${id}: You guessed ${guess.toLowerCase()}. The result is ${accuracy.result}. You have ${user.remain} guesses remaining.`;
 
                 } else {
 
                     // User ran out of guesses. Update Wordle database and set response string.
                     await client.query(`UPDATE wordle SET word = ' ', remain = 6, guess = ' ', losses = losses + 1, streak = 0, checks = ' ' WHERE user_id = '${id}';`);
-                    resStr = `@${id}: You guessed ${guess}. The word was ${user.word.toUpperCase()}. You have no more guesses. Type !wordle to play again!`;
+                    resStr = `@${id}: You guessed ${guess.toLowerCase()}. The word was ${user.word.toUpperCase()}. You have no more guesses. Type !wordle to play again!`;
 
                 }
             }

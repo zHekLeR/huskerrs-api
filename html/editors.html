@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>zHekBot - Editors</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+    box-sizing: border-box;
+  margin: 0;
+    font-family: Arial;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  max-height: 5vh;
+  padding: 0vh 1vw;
+  margin: 0;
+  background-color: green;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.content {
+  max-width: 50%;
+  background: white;
+  padding: 25px;
+  margin-left: 25%;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100vw;
+  max-height: fit-content;
+  background-color: green;
+  color: white;
+  text-align: center;
+  padding: 1vh 1vw;
+  font-size: auto;
+}
+
+#twitch {
+    background-color: #9146ff;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.button {
+  background-color: green;
+  border: 1px solid green;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, .1) 0 2px 4px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  outline: 0;
+  padding: 10px 25px;
+  margin: 5px;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 150ms, box-shadow 150ms;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.button:hover {
+  box-shadow: rgba(0, 0, 0, .15) 0 3px 9px 0;
+  transform: translateY(-2px);
+}
+
+table {
+    width: 100%;
+    border: 1px solid gray;
+}
+
+th {
+    border: 1px solid gray;
+}
+
+img { 
+  max-height: 5vh;
+  width: auto; 
+}
+
+</style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/"><img href="/" src="/images/Logo.png" style="float: left; padding-right: 0.3vw; cursor: pointer;"><button style="background: green; border: none; font-size: 3.25vh; padding-top: 0.5vh; color: white; cursor: pointer;">zHekBot</button></a>
+        <a href="/login" id="twitch" style="padding: 0vh 0.35vw;">
+            <img src="/images/Twitch.png" style="float: left; padding: 0.4vh 0vw;">
+            <button style="border: none; font-size: 2.65vh; color: white; background-color: #9146ff; cursor: pointer; padding-top: 0.7vh;">Logout of Twitch</button>
+        </a>
+    </div>
+    <div class="content">
+        <h3>
+            This is your Editors page. An Editor is another person who can access your dashboard.<br>
+            This means they can enable/disable your modules and use your Two vs Two dashboard.<br>
+            To add one, put their Twitch username into the form below and click the Submit button.
+        </h3><br>
+        <div class="editors">
+            <h2>#pref_name#'s Editors</h2>
+            <table>
+                #editors#
+            </table>
+        </div><br>
+        <div>Add an Editor:&nbsp;<input type="text" id="toadd" value=""></div>
+        <div id="submit" class="button" onclick="add()">Submit</div>
+    </div>
+    <footer class="footer">Any questions / issues / suggestions? The best way to contact me is on Twitch (zHekLeR) or Discord (zHekLeR#4857).</footer>
+
+    <script>
+        async function add() {
+            let button = document.getElementById("submit");
+            button.style = `background-color: gray; border: 1px solid gray;`;
+            button.disabled = true;
+            setTimeout(function() {
+                button.style = `background-color: green; border: 1px solid green;`;
+                button.disabled = false;
+            }, 1000);
+
+            let toadd = document.getElementById('toadd').value.toLowerCase();
+            
+            if (toadd === '') {
+                alert('Editor name cannot be blank.');
+                return;
+            } else if (toadd === '#channel#'.toLowerCase()) {
+                alert('You cannot add yourself as your own editor.');
+                return;
+            } 
+
+            await fetch('/addeditor/#channel#', { headers: { 'editor': toadd }})
+            .then(res => {
+                if (res.status == 200) {
+                    let table = document.getElementsByTagName("table")[0].insertRow();
+                    let row1 = table.insertCell(0);
+                    row1.innerHTML = `${toadd}`;
+                    row1.style = 'border: 1px solid gray;';
+
+                    let row2 = table.insertCell(1);
+                    row2.innerHTML = `<div class="button" onclick="remove(this)">Remove</div>`;
+                    row2.style = 'border: 1px solid gray;';
+                } else {
+                    throw new Error(`Error: status ${res.status}`);
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                alert(err.message);
+            });
+        }
+
+        async function remove(btn) {
+            await fetch('/removeeditor/#channel#', { headers: { 'editor': btn.parentNode.parentNode.childNodes[0].innerHTML }})
+            .then(res => {
+                if (res.status == 200) {
+                    let row = btn.parentNode.parentNode;
+                    row.parentNode.removeChild(row);
+                } else {
+                    throw new Error(`Error: status ${res.status}`);
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                alert(err.message);
+            });
+        }
+    </script>
+</body>
+</html> 

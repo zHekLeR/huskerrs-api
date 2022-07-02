@@ -4,7 +4,7 @@
 import 'dotenv/config';
 
 // COD API stuff.
-import express from "express";
+import express, { response } from "express";
 import uniqid from 'uniqid';
 import crypto from 'crypto';
 
@@ -13,7 +13,7 @@ import axios from 'axios';
 import got from 'got';
 
 // Twitch and Discord bots.
-import tmi from 'tmi.js';
+import tmi, { client } from 'tmi.js';
 import { Client, Intents } from "discord.js";
 
 // Games,
@@ -95,6 +95,7 @@ discord.on("messageCreate", (message) => {
 // Log in to the Discord bot.
 discord.login(process.env.TOKEN);
 
+// HusKerrs VIPs.
 const vips = 'neosog, guppii, lululuvely, officialgloriouspcgr, tannerslays, itsthiccchick, craftyjoseph, thanks4dying, mateocrafter1304, hannahnicole4300, stormen, thomdez, fuzwuz, cklaas, triv, zxch, airy_z, bumbobboi, twisttedt, meerko, confire, geesh, missnaruka, gmoe003, femsteph, gdolphn, patriotic, rknhd, rogue_frank, crowder, vileagony, safecojoe, biazar, notjustjohnny, meesterhauns, kurt, midone, muffinwithnobrim, mikedrop39, bronny, swagg, stableronaldo, willo7891, hitstreak, scump, n8brotherwolf, cloakzy, chickitv, karma, soapwingo, joewo, hoffensnieg, deeksjr, tiensochill, gloliva, destroy, its_iron, imr_sa, ochocinco, magalonn, artesianbuilds, azsnakeb1t3, hasham_33, alextumay, pat_o_, nicewigg, 1chilldawg, hideouts_, scummn, momskerrs, p90queen, drawrj, jefedejeff, methodz, valorash_, tyrannymedia, lablakers24, antdavis3, almxnd, jgod_gaming, mafiia_niko, liamferrari, timthetatman, feldubb, holyman, kentb57, l3xu55, bbreadman, sinnerrrr, aydan, unrational, wagnificent, davidtheslayerrr, tommey, zsmit, drakota, mvs_11, ndolok, janegoatt'.split(', ');
 
 // Create the Twitch bot.
@@ -110,13 +111,17 @@ const bot = new tmi.Client({
   channels: [ ]
 });
 
+// Two vs Two arrays.
 let tvtInt = {};
 let tvtUpdate = {};
 
 // Logs the Twitch bot being initialized.
 bot.on('logon', () => {
   console.log("Twitch bot logged on.");
-})
+});
+
+// Free trial up.
+let pause = {};
 
 // Check for commands and respond appropriately.
 bot.on('chat', async (channel, tags, message) => {
@@ -124,10 +129,16 @@ bot.on('chat', async (channel, tags, message) => {
 
     // Return if not a command.
     if (!message.startsWith('!')) return;
+    if (pause[channel.substring(1)] && tags["username"] !== 'zhekler') return;
 
     // Get command.
     let splits = message.split(' ');
     let short = splits[0].toLowerCase();
+
+    // Is there a global command set for this chat?
+    if (!gcd[channel.substring]) {
+      gcd[channel.substring(1)] = {};
+    }
 
     // Check/set global cooldown on command.
     if (gcd[channel.substring(1)][short] && gcd[channel.substring(1)][short] > Date.now()) return;
@@ -138,8 +149,31 @@ bot.on('chat', async (channel, tags, message) => {
 
     // Switch on given command.
     switch (short) {
+      // Return commands for this channel.
+      case '!commands':
+        if (!userIds[channel.substring(1)].commands) break;
+        bot.say(channel, `zHekBot commands: https://www.zhekbot.com/commands/${channel.substring(1)}`);
+        gcd[channel.substring(1)][short] = Date.now() + 10000;
+        break;
+
+
+      // Pause this shit.
+      case '!pause':
+        if (tags["username"] !== 'zhekler' || pause[channel.substring(1)]) break;
+        pause[channel.substring(1)] = true;
+        bot.say(channel, 'The free trial for zHekBot has expired #payzhekler');
+        break;
+
+      // Unpause.
+      case '!unpause':
+        if (tags["username"] !== 'zhekler' || !pause[channel.substring(1)]) break;
+        pause[channel.substring(1)] = false;
+        break;
+
+
+      // Enable Revolver Roulette.
       case '!rron': 
-        if (userIds[channel.substring(1)].revolverroulette || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].revolverroulette || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET revolverroulette = true WHERE user_id = '${channel.substring(1)}';`)
         client.release();
@@ -147,8 +181,9 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Revolver Roulette has been enabled. Type !rr to play!`);
         break;
 
+      // Disable Revolver Roulette.
       case '!rroff': 
-        if (!userIds[channel.substring(1)].revolverroulette || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].revolverroulette || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET revolverroulette = false WHERE user_id = '${channel.substring(1)}';`)
         client.release();
@@ -156,56 +191,71 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Revolver Roulette has been disabled.`);
         break;
 
+      // Play Revolver Roulette.
       case '!rr': 
         if (!userIds[channel.substring(1)].revolverroulette) break;
+        // @ts-ignore
         if (!rrcd[tags["username"]] || rrcd[tags["username"]] < Date.now()) {
-          bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"]));
+          // @ts-ignore
+          bot.say(channel, await revolverroulette.revolverroulette(tags["display-name"]?tags["display-name"]:tags["username"], channel));
+          // @ts-ignore
           rrcd[tags["username"]] = Date.now() + 30000;
         }
         break;
 
+      // Get this user's Revolver Roulette score.
       case '!rrscore':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteScore(tags["display-name"]?tags["display-name"]:tags["username"]));
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteScore(tags["display-name"]?tags["display-name"]:tags["username"], channel));
         break;
 
+      // Get another user's Revolver Roulette score.
       case '!rrscoreother':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteScore(message.split(' ')[1]));
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteScore(message.split(' ')[1], channel));
         break;
 
+      // Get the 3 users with the top survivals in Revolver Roulette.
       case '!rrlb':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteLb());
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteLb(channel));
         break;
 
+      // Get the 3 users with the top deaths in Revolver Roulette.
       case '!rrlbdie':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteLbDie());
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteLbDie(channel));
         break;
 
+      // Get the 3 users with the best win / loss ratios in Revolver Roulette.
       case '!rrlbratio':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteLbRatio());
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteLbRatio(channel));
         break;
 
+      // Get the 3 users with the worst win / loss ratios in Revolver Roulette.
       case '!rrlbratiolow':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteLbRatioLow());
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteLbRatioLow(channel));
         break;
 
+      // Get the total survivals and deaths for this channel in Revolver Roulette.
       case '!rrtotals':
         if (!userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.revolverrouletteTotals());
+        // @ts-ignore
+        bot.say(channel, await revolverroulette.revolverrouletteTotals(channel));
         break;
 
-      case '!gamestats':
-        if (!userIds[channel.substring(1)].coinflip || !userIds[channel.substring(1)].rps || !userIds[channel.substring(1)].revolverroulette) break;
-        bot.say(channel, await revolverroulette.allTimes(tags["display-name"]?tags["display-name"]:tags["username"]));
-        break;
 
+      // Enable Coinflip.
       case '!coinon':
-        if (userIds[channel.substring(1)].coinflip || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].coinflip || !tags["mod"] || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET coinflip = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -213,8 +263,9 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Coinflip enabled.`);
         break;
 
+      // Disable Coinflip.
       case '!coinoff':
-        if (!userIds[channel.substring(1)].coinflip || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].coinflip || !tags["mod"] || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET coinflip = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -222,27 +273,37 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Coinflip disabled.`);
         break;
 
+      // Play Coinflip.
       case '!coin':
         if (!userIds[channel.substring(1)].coinflip) break;
         if (!tags["subscriber"]) break;
+        // @ts-ignore
         if (!cfcd[tags["username"]] || cfcd[tags["username"]] < Date.now()) {
-          bot.say(channel, await coinflip.coinflip(tags["display-name"]?tags["display-name"]:tags["username"], message.split(' ')[1]));
+          // @ts-ignore
+          bot.say(channel, await coinflip.coinflip(tags["display-name"]?tags["display-name"]:tags["username"], message.split(' ')[1], channel));
+          // @ts-ignore
           rrcd[tags["username"]] = Date.now() + 15000;
         }
         break;
 
+      // Get this user's score in Coinflip. 
       case '!coinscore':
         if (!userIds[channel.substring(1)].coinflip) break;
-        bot.say(channel, await coinflip.coinflipScore(tags["display-name"]?tags["display-name"]:tags["username"]));
+        // @ts-ignore
+        bot.say(channel, await coinflip.coinflipScore(tags["display-name"]?tags["display-name"]:tags["username"], channel));
         break;
 
+      // Get the users with the most wins and the most losses in Coinflip. 
       case '!coinlb':
         if (!userIds[channel.substring(1)].coinflip) break;
-        bot.say(channel, await coinflip.coinflipLb());
+        // @ts-ignore
+        bot.say(channel, await coinflip.coinflipLb(channel));
         break;
 
+
+      // Enable Rock Paper Scissors.
       case '!rpson':
-        if (userIds[channel.substring(1)].rps || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].rps || !tags["mod"] || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET rps = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -250,8 +311,9 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Rock paper scissors enabled.`);
         break;
 
+      // Disable Rock Paper Scissors.
       case '!rpsoff':
-        if (!userIds[channel.substring(1)].rps || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].rps || !tags["mod"] || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET rps = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -259,27 +321,37 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Rock paper scissors disabled.`);
         break;
 
+      // Play Rock Paper Scissors.
       case '!rps': 
-      if (!userIds[channel.substring(1)].rps) break;
-      if (!tags["subscriber"]) break;
+        if (!userIds[channel.substring(1)].rps) break;
+        if (!tags["subscriber"]) break;
+        // @ts-ignore
         if (!rpscd[tags["username"]] || rpscd[tags["username"]] < Date.now()) {
-          bot.say(channel, await rps.rps(tags["display-name"]?tags["display-name"]:tags["username"], message.split(' ')[1]));
+          // @ts-ignore
+          bot.say(channel, await rps.rps(tags["display-name"]?tags["display-name"]:tags["username"], message.split(' ')[1], channel));
+          // @ts-ignore
           rrcd[tags["username"]] = Date.now() + 15000;
         }
         break;
 
+      // Get user's score in Rock Paper Scissors.
       case '!rpsscore': 
       if (!userIds[channel.substring(1)].rps) break;
-        bot.say(channel, await rps.rpsScore(tags["display-name"]?tags["display-name"]:tags["username"]));
+        // @ts-ignore
+        bot.say(channel, await rps.rpsScore(tags["display-name"]?tags["display-name"]:tags["username"], channel));
         break;
 
+      // Get the users with the most wins, most losses, and most ties in Rock Paper Scissors.
       case '!rpslb':
         if (!userIds[channel.substring(1)].rps) break;
-        bot.say(channel, await rps.rpsLb());
+        // @ts-ignore
+        bot.say(channel, await rps.rpsLb(channel));
         break;
 
+
+      // Enable Big Vanish. 
       case '!bigvanishon':
-        if (userIds[channel.substring(1)].bigvanish || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].bigvanish || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET bigvanish = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -287,8 +359,9 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Bigvanish enabled.`);
         break;
 
+      // Disable Big Vanish.
       case '!bigvanishoff':
-        if (!userIds[channel.substring(1)].bigvanish || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].bigvanish || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET bigvanish = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -296,27 +369,37 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Bigvanish disabled.`);
         break;
 
+      // Play Big Vanish.
       case '!bigvanish':
         if (!userIds[channel.substring(1)].bigvanish) break;
+        // @ts-ignore
         if (!bvcd[tags["username"]] || bvcd[tags["username"]] < Date.now()) {
-          bot.say(channel, await bigvanish.bigVanish(tags["display-name"]?tags["display-name"]:tags["username"]));
+          // @ts-ignore
+          bot.say(channel, await bigvanish.bigVanish(tags["display-name"]?tags["display-name"]:tags["username"], channel));
+          // @ts-ignore
           rrcd[tags["username"]] = Date.now() + 15000;
           setTimeout(function() { bot.say(channel, `/untimeout ${tags["username"]}`); }, 3000);
         }
         break;
 
+      // Get the 3 users with the highest timeouts in Big Vanish.
       case '!bigvanishlb':
         if (!userIds[channel.substring(1)].bigvanish) break;
-        bot.say(channel, await bigvanish.bigVanishLb());
+        // @ts-ignore
+        bot.say(channel, await bigvanish.bigVanishLb(channel));
         break;
 
+      // Get the 3 users with the lowest timeouts in Big Vanish.
       case '!bigvanishlow':
         if (!userIds[channel.substring(1)].bigvanish) break;
-        bot.say(channel, await bigvanish.bigVanishLow());
+        // @ts-ignore
+        bot.say(channel, await bigvanish.bigVanishLow(channel));
         break;
 
+      
+      // Enable customs scoring.
       case '!customon':
-        if (userIds[channel.substring(1)].customs || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
           bot.say(channel, '!enable !mc false');
@@ -327,8 +410,9 @@ bot.on('chat', async (channel, tags, message) => {
         userIds[channel.substring(1)].customs = true;
         break;
 
+      // Disable customs scoring.
       case '!customoff':
-        if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;;
+        if (!userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score true');
           bot.say(channel, '!enable !mc true');
@@ -339,24 +423,27 @@ bot.on('chat', async (channel, tags, message) => {
         userIds[channel.substring(1)].customs = false;
         break;
 
+      // Set the number of maps.
       case '!setmaps': 
-        if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1)) || splits.length == 1) break;
         client = await pool.connect();
-        await client.query(`UPDATE customs SET map_count = ${parseInt(message.split(' ')[1])} WHERE user_id = '${channel.substring(1)}';`);
+        await client.query(`UPDATE customs SET map_count = ${parseInt(splits[1])} WHERE user_id = '${channel.substring(1)}';`);
         client.release();
-        bot.say(channel, `Map count has been set to ${message.split(' ')[1]}`);
+        bot.say(channel, `Map count has been set to ${splits[1]}`);
         break;
 
+      // Set the placement string.
       case '!setplacement':
-        if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1)) || splits.length % 2 != 1) break;
         client = await pool.connect();
         await client.query(`UPDATE customs SET multipliers = '${message.substring(message.indexOf(' ') + 1)}' WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         bot.say(channel, `Placement multipliers have been updated.`);
         break;
 
+      // Add a map to the scores.
       case '!addmap':
-        if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1)) || splits.length != 3) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
         placement = parseInt(message.split(' ')[1]);
@@ -383,11 +470,13 @@ bot.on('chat', async (channel, tags, message) => {
         } else {
           placement = `${placement}th`;
         }
+        // @ts-ignore
         bot.say(channel, `Team ${channel.substring(1)} got ${placement} place with ${kills} kills for ${score.toFixed(2)} points!`);
         break;
 
+      // Remove the last map from the scores.
       case '!removemap':
-        if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
         res.rows[0].maps.placement.length = res.rows[0].maps.placement.length?res.rows[0].maps.placement.length-1:0;
@@ -397,19 +486,21 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Last map has been removed.`);
         break;
 
+      // Get the map count.
       case '!mc':
         if (!userIds[channel.substring(1)].customs) break;
         client = await pool.connect();
         res = await client.query(`SELECT * FROM customs WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         if (res.rows[0].maps.placement.length == res.rows[0].map_count) {
-          str = `All maps have been played huskGG`;
+          str = `All maps have been played.`;
         } else {
           str = `Map ${res.rows[0].maps.placement.length + 1} of ${res.rows[0].map_count}`;
         }
         bot.say(channel, str);
         break;
 
+      // Get the score for the maps thus far.
       case '!score':
         if (!userIds[channel.substring(1)].customs && !userIds[channel.substring(1)].two_v_two) break;
         if (userIds[channel.substring(1)].customs) {
@@ -426,28 +517,37 @@ bot.on('chat', async (channel, tags, message) => {
                 break;
               }
             }
+            // @ts-ignore
             score.push(`Map ${i + 1}: ${(res.rows[0].maps.kills[i] * placement).toFixed(2)}`);
+            // @ts-ignore
             total += res.rows[0].maps.kills[i] * placement;
           }
           str = score.join(' | ');
           if (score.length < res.rows[0].map_count) str += score.length?` | Map ${score.length + 1}: TBD`:`Map 1: TBD`;
           str += ` | Total: ${total.toFixed(2)} pts`;
           bot.say(channel, str);
-        } else {
+        } else if (userIds[channel.substring(1)]["two_v_two"]) {
           await tvtscores(channel.substring(1));
         }
         break;
 
+      // Clear all of the maps.
       case '!resetmaps':
-        if (!userIds[channel.substring(1)].customs || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].customs || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE customs SET maps = '{"placement":[],"kills":[]}'::json WHERE user_id = '${channel.substring(1)}';`);
         client.release();
         bot.say(channel, `Maps have been reset.`);
         break;
 
+
+      // Enable match tracking.
       case '!matcheson':
-        if (userIds[channel.substring(1)].matches || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].matches || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
+        if (!userIds[channel.substring(1)].acti_id) {
+          bot.say(channel, `You must first set your Activision ID in the dashboard.`);
+          break;
+        }
         client = await pool.connect();
         await client.query(`UPDATE allusers SET matches = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -455,8 +555,9 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Matches disabled.`);
         break;
 
+      // Disable match tracking.
       case '!matchesoff':
-        if (!userIds[channel.substring(1)].matches || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].matches || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET matches = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -464,62 +565,83 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, `Matches enabled.`);
         break;
 
+      // Get the last game stats.
       case '!lastgame':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await lastGame(userIds[channel.substring(1)].acti_id));
+        // @ts-ignore
+        bot.say(channel, await lastGame(channel.substring(1)));
         break;
 
+      // Get the weekly stats.
       case '!lastgames':
       case '!weekly':
         if (!userIds[channel.substring(1)].matches) break;
+        // @ts-ignore
         bot.say(channel, await lastGames(userIds[channel.substring(1)].acti_id));
         break;
 
+      // Get the daily stats.
       case '!daily':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await daily(userIds[channel.substring(1)].acti_id));
+        // @ts-ignore
+        bot.say(channel, await daily(channel.substring(1)));
         break;
 
+      // Get the daily bombs.
       case '!bombs':
-        if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await bombs(userIds[channel.substring(1)].acti_id));
+        if (!userIds[channel.substring(1)].matches || channel.substring(1) === 'fifakillvizualz') break;
+        // @ts-ignore
+        bot.say(channel, await bombs(channel.substring(1)));
         break;
 
+      // Get the daily wins.
       case '!wins': 
       if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await wins(userIds[channel.substring(1)].acti_id));
+        // @ts-ignore
+        bot.say(channel, await wins(channel.substring(1)));
         break;
 
+      // Get the daily gulag record.
       case '!gulag':
         if (!userIds[channel.substring(1)].matches) break;
-        bot.say(channel, await gulag(userIds[channel.substring(1)].acti_id));
+        // @ts-ignore
+        bot.say(channel, await gulag(channel.substring(1)));
         break;
 
+      // Get lifetime stats.
       case '!stats':
       case '!kd':
         if (!userIds[channel.substring(1)].matches) break;
         bot.say(channel, await stats(userIds[channel.substring(1)].acti_id, userIds[channel.substring(1)].platform));
         break;
 
+      // Get number of semtex kills.
       case '!kobe':
       case '!semtex':
         if (channel.substring(1) !== 'huskerrs') break;
+        // @ts-ignore
         bot.say(channel, await semtex());
         break;
 
+      // Get the 5 most frequent teammates this week.
       case '!teammates':
         if (!userIds[channel.substring(1)].matches) break;
+        // @ts-ignore
         bot.say(channel, await teammates(userIds[channel.substring(1)].acti_id));
         break;
 
+      // Get the 5 most frequent game modes this week.
       case '!modes':
       case '!gamemodes':
         if (!userIds[channel.substring(1)].matches) break;
+        // @ts-ignore
         bot.say(channel, await gamemodes(userIds[channel.substring(1)].acti_id));
         break;
       
+
+      // Enable Two vs Two scoring.
       case '!2v2on':
-        if ((userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;
+        if (userIds[channel.substring(1)]["two_v_two"] || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score false');
           bot.say(channel, `HusKerrs' official scorekeeper is esSpyderMonkey. Make sure to thank him for the updates!`);
@@ -540,8 +662,9 @@ bot.on('chat', async (channel, tags, message) => {
         tvtUpdate[channel.substring(1)] = Date.now();
         break;
 
+      // Disable Two vs Two scoring.
       case '!2v2off':
-        if ((!userIds[channel.substring(1)]["two_v_two"] || !tags["mod"]) && tags["username"] !== 'esspydermonkey') break;;
+        if (!userIds[channel.substring(1)]["two_v_two"] || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;;
         if (channel.substring(1) === 'huskerrs') {
           bot.say(channel, '!enable !score true');
         } else {
@@ -557,6 +680,8 @@ bot.on('chat', async (channel, tags, message) => {
         tvtInt = [];
         break;
       
+
+      // Enable sub thanking.
       case '!subson':
         if (tags['username'] !== 'zhekler' && tags['username'] !== channel.substring(1)) break;
         client = await pool.connect();
@@ -565,6 +690,7 @@ bot.on('chat', async (channel, tags, message) => {
         userIds[channel.substring(1)].subs = true;
         break;
 
+      // Disable sub thanking.
       case '!subsoff':
         if (tags['username'] !== 'zhekler' && tags['username'] !== channel.substring(1)) break;
         client = await pool.connect();
@@ -573,41 +699,57 @@ bot.on('chat', async (channel, tags, message) => {
         userIds[channel.substring(1)].subs = false;
         break;
       
+
+      // Check the stats of a user.
       case '!check':
+        // @ts-ignore
         if (!tags['mod'] && !vips.includes(tags['username']) && channel.substring(1) !== tags["username"]) break;
         bot.say(channel, await stats(message.substring(message.indexOf(' ') + 1), 'uno'));
         break;
 
+
+      // Announce prediction to chat.
       case '!pred':
         if (channel.substring(1) !== 'huskerrs' || !tags["mod"]) break;
-        let str = `PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk `;
+        str = `PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk PREDICTION peepoGamble  DinkDonk `;
+        bot.say(channel, `/announce ${str}`);
+        bot.say(channel, `/announce ${str}`);
         bot.say(channel, `/announcegreen ${str}`);
-        bot.say(channel, `/announceblue ${str}`);
-        bot.say(channel, `/announcepurple ${str}`);
         break;
 
+
+      // Timeout command for VIPs mainly.
       case '!timeout':
+        // @ts-ignore
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/timeout ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
         break;
 
+      // Untimeout command for VIPs mainly.
       case '!untimeout':
+        // @ts-ignore
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/untimeout ${splits[1]}`);
         break;
 
+      // Ban command for VIPs mainly.
       case '!ban':
+        // @ts-ignore
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/ban ${message.substring(message.indexOf(' ') + 1)} - ${tags['username']}`);
         break;
 
+      // Unban command for VIPs mainly.
       case '!unban':
+        // @ts-ignore
         if (channel.substring(1) !== 'huskerrs' || (!tags["mod"] && !vips.includes(tags['username']))) break;
         bot.say(channel, `/unban ${splits[1]}`);
         break;
 
+      
+      // Enable dueling.
       case '!duelon':
-        if (userIds[channel.substring(1)].duel || !tags["mod"]) break;
+        if (userIds[channel.substring(1)].duel || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET duel = true WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -615,8 +757,9 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, 'Duels are now enabled.');
         break;
 
+      // Disable dueling.
       case '!dueloff':
-        if (!userIds[channel.substring(1)].duel || !tags["mod"]) break;
+        if (!userIds[channel.substring(1)].duel || (!tags["mod"] && tags['username'] !== channel.substring(1))) break;
         client = await pool.connect();
         await client.query(`UPDATE allusers SET duel = false WHERE user_id = '${channel.substring(1)}';`);
         client.release();
@@ -624,8 +767,10 @@ bot.on('chat', async (channel, tags, message) => {
         bot.say(channel, 'Duels are now disabled.');
         break;
       
+      // Challenge another user to a duel.
       case '!duel': 
-        if (!userIds[channel.substring(1)].duel) break;
+        if (!userIds[channel.substring(1)].duel || splits.length == 1) break;
+        // @ts-ignore
         if (dcd[tags["username"]] && dcd[tags["username"]] > Date.now()) break;
 
         splits[1] = splits[1].indexOf('@') === 0?splits[1].substring(1):splits[1];
@@ -635,24 +780,26 @@ bot.on('chat', async (channel, tags, message) => {
         }
 
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[1].toLowerCase()}';`);
-        let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[1].toLowerCase()}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${splits[1].toLowerCase()}' AND stream = '${channel.substring(1)}';`);
+        let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[1].toLowerCase()}' AND stream = '${channel.substring(1)}';`);
 
         if (!res.rows.length && (!res2.rows.length || res2.rows[0].oppid === ' ')) {
-          let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+          let res3 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
 
           if (res3.rows.length) {
 
             if (!res3.rows[0].oppid || res3.rows[0].oppid === ' ') {
-              await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}';`);
+              await client.query(`UPDATE duelduel SET oppid = '${splits[1].toLowerCase()}', expiration = ${Date.now()/1000 + 120} WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
               bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+              // @ts-ignore
               dcd[tags["username"]] = Date.now() + 15000;
             } else {
               bot.say(channel, `@${tags["username"]} : You have already challenged someone to a duel. Type !cancel to cancel it.`);
             }
           } else {
-            await client.query(`INSERT INTO duelduel(oppid, expiration, userid) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}');`);
+            await client.query(`INSERT INTO duelduel(oppid, expiration, userid, stream) VALUES ('${splits[1].toLowerCase()}', ${Date.now()/1000 + 120}, '${tags["username"]}', '${channel.substring(1)}');`);
             bot.say(channel, `@${splits[1].toLowerCase()} : You've been challenged to a duel by ${tags["username"]}! Type !accept to accept or !coward to deny. Loser is timed out for 1 minute.`);
+            // @ts-ignore
             dcd[tags["username"]] = Date.now() + 15000;
           }
         } else {
@@ -661,63 +808,67 @@ bot.on('chat', async (channel, tags, message) => {
         client.release();
         break;
 
+      // Cancel a duel challenge.
       case '!cancel': 
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
         if (res.rows.length && res.rows[0].oppid !== ' ') {
-          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE userid = '${tags["username"]}';`);
+          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
           bot.say(channel, `@${tags["username"]} : You have cancelled the duel.`);
         }
         client.release();
         break;
 
+      // Reject another user's challenge.
       case '!coward': 
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
         if (res.rows.length) {
-          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE oppid = '${tags["username"]}';`);
-          bot.say(channel, `${tags["username"]} has rejected the duel KEKWiggle`)
+          await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647 WHERE oppid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
+          bot.say(channel, `/announce ${tags["username"]} has rejected the duel KEKWiggle`)
         } 
         client.release();
         break;
 
+      // Accept another user's challenge.
       case '!accept': 
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE oppid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
         if (res.rows.length) {
           let rand = Math.round(Math.random());
           if (rand) {
-            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, wins = wins + 1 WHERE userid = '${res.rows[0].userid}';`);
-            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, wins = wins + 1 WHERE userid = '${res.rows[0].userid}' AND stream = '${channel.substring(1)}';`);
+            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
             if (res2.rows.length) {
-              await client.query(`UPDATE duelduel SET losses = losses + 1 WHERE userid = '${tags["username"]}';`);
+              await client.query(`UPDATE duelduel SET losses = losses + 1 WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
             } else {
-              await client.query(`INSERT INTO duelduel(userid, losses) VALUES ('${tags["username"]}', 1);`);
+              await client.query(`INSERT INTO duelduel(userid, losses, stream) VALUES ('${tags["username"]}', 1, '${channel.substring(1)}');`);
             }
-            bot.say(channel, `/timeout ${tags["username"]} 60`);
+            bot.say(channel, `/timeout ${tags["username"]} 60 You lost the duel to ${res.rows[0].userid}. Hold this L`);
             bot.say(channel, `${res.rows[0].userid} has won the duel against ${tags["username"]}!`);
           } else {
-            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+            let res2 = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
             if (res2.rows.length) {
-              await client.query(`UPDATE duelduel SET wins = wins + 1 WHERE userid = '${tags["username"]}';`);
+              await client.query(`UPDATE duelduel SET wins = wins + 1 WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
             } else {
-              await client.query(`INSERT INTO duelduel(userid, wins) VALUES ('${tags["username"]}', 1);`);
+              await client.query(`INSERT INTO duelduel(userid, wins, stream) VALUES ('${tags["username"]}', 1, '${channel.substring(1)}');`);
             }
-            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, losses = losses + 1 WHERE userid = '${res.rows[0].userid}';`);
-            bot.say(channel, `/timeout ${res.rows[0].userid} 60`);
-            bot.say(channel, `${tags["username"]} has won the duel against ${res.rows[0].userid}!`);
+            await client.query(`UPDATE duelduel SET oppid = ' ', expiration = 2147483647, losses = losses + 1 WHERE userid = '${res.rows[0].userid}' AND stream = '${channel.substring(1)}';`);
+            bot.say(channel, `/timeout ${res.rows[0].userid} 60 You lost the duel to ${tags["username"]}. Hold this L`);
+            await bot.say(channel, `${tags["username"]} has won the duel against ${res.rows[0].userid}!`);
           }
         }
         client.release();
         break;
 
+      // Get user's duel score.
       case '!duelscore':
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}';`);
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${tags["username"]}' AND stream = '${channel.substring(1)}';`);
         client.release();
         if (res.rows.length && (res.rows[0].wins || res.rows[0].losses)) {
           bot.say(channel, `${tags["username"]} has won ${res.rows[0].wins} duels and lost ${res.rows[0].losses}. That is a ${(100*res.rows[0].wins/(res.rows[0].wins+res.rows[0].losses)).toFixed(2)}% win rate.`);
@@ -726,24 +877,66 @@ bot.on('chat', async (channel, tags, message) => {
         }
         break;
 
+      // Get another user's duel score.
+      case '!duelscoreother':
+        if (!userIds[channel.substring(1)].duel || !splits[1]) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT * FROM duelduel WHERE userid = '${splits[1].toLowerCase()}' AND stream = '${channel.substring(1)}';`);
+        client.release();
+        if (res.rows.length && (res.rows[0].wins || res.rows[0].losses)) {
+          bot.say(channel, `${splits[1]} has won ${res.rows[0].wins} duels and lost ${res.rows[0].losses}. That is a ${(100*res.rows[0].wins/(res.rows[0].wins+res.rows[0].losses)).toFixed(2)}% win rate.`);
+        } else {
+          bot.say(channel, `${splits[1]} has not dueled anyone.`);
+        }
+        break;
+
+      // Get the 3 users with the most dueling wins.
       case '!duellb':
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT * FROM duelduel ORDER BY wins DESC LIMIT 3;`);
+        res = await client.query(`SELECT * FROM duelduel WHERE stream = '${channel.substring(1)}' ORDER BY wins DESC LIMIT 3;`);
         client.release();
-        bot.say(channel, `Duel Leaderboard: Wins | ${res.rows[0].userid}: ${res.rows[0].wins} | ${res.rows[1].userid}: ${res.rows[1].wins} | ${res.rows[2].userid}: ${res.rows[2].wins}`);
+        str = [];
+        for (let i = 0; i < res.rows.length; i++) {
+          str.push(`${res.rows[i].userid}: ${res.rows[i].wins}`);
+        }
+        bot.say(channel, `Duel Leaderboard: Wins | ${str.join(' | ')}`);
         break;
 
+      // Get the 3 users with the best win / loss ratio in duels.
       case '!duellbratio':
         if (!userIds[channel.substring(1)].duel) break;
         client = await pool.connect();
-        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 10) AS rr ORDER BY percent DESC LIMIT 3;`);
+        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 10 AND stream = '${channel.substring(1)}') AS rr ORDER BY percent DESC LIMIT 3;`);
         client.release();
-        bot.say(channel, `Duel Leaderboard: Ratio | ${res.rows[0].userid}: ${res.rows[0].percent}% (${res.rows[0].wins + res.rows[0].losses}) | ${res.rows[1].userid}: ${res.rows[1].percent}% (${res.rows[1].wins + res.rows[1].losses}) | ${res.rows[2].userid}: ${res.rows[2].percent}% (${res.rows[2].wins + res.rows[2].losses})`)
+        str = [];
+        for (let i = 0; i < res.rows.length; i++) {
+          str.push(`${res.rows[i].userid}: ${res.rows[i].percent}% (${res.rows[i].wins + res.rows[i].losses})`);
+        }
+        bot.say(channel, `Duel Leaderboard: Ratio | ${str.join(' | ')}`);
         break;
 
+      // Get the 3 users with the worst win / loss ratio in duels.
+      case '!duellbratiolow':
+        if (!userIds[channel.substring(1)].duel) break;
+        client = await pool.connect();
+        res = await client.query(`SELECT userid, wins, losses, ROUND(wins * 100.0 / (wins + losses), 2) AS percent FROM (SELECT * FROM duelduel WHERE wins + losses >= 10 AND stream = '${channel.substring(1)}') AS rr ORDER BY percent ASC LIMIT 3;`);
+        client.release();
+        str = [];
+        for (let i = 0; i < res.rows.length; i++) {
+          str.push(`${res.rows[i].userid}: ${res.rows[i].percent}% (${res.rows[i].wins + res.rows[i].losses})`);
+        }
+        bot.say(channel, `Duel Leaderboard: Ratio | ${str.join(' | ')}`);
+        break;
+
+      
+      // Exit the channel.
       case '!zhekleave':
         if (tags["username"] !== channel.substring(1) && tags["username"] !== "zhekler") break;
+        delete userIds[channel.substring(1)];
+        client = await pool.connect();
+        await client.query(`DELETE FROM allusers WHERE user_id = '${channel.substring(1)}';`);
+        client.release();
         bot.say(channel, 'peepoLeave');
         bot.part(channel);
         break;
@@ -754,15 +947,18 @@ bot.on('chat', async (channel, tags, message) => {
   }
 });
 
+
+// Two vs Two scores.
 async function tvtscores(channel, force = false) {
   try {
-    if (!force && tvtUpdate[channel] < Date.now()) {
+    if (force || tvtUpdate[channel] < Date.now()) {
       let client = await pool.connect();
       let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${channel}';`);
       client.release();
       let us = res.rows[0].hkills + res.rows[0].tkills;
       let opp = res.rows[0].o1kills + res.rows[0].o2kills;
-      bot.say(channel, `${us} - ${opp}${(us==6 && opp==9)?` Nice`:``} | ${us > opp?"Up "+ (us - opp):us < opp?"Down " + (opp - us):"Tied"}`);
+      bot.say(channel, `${us} - ${opp}${(us==6 && opp==9)?` Nice`:``} | ${us + res.rows[0].mapreset > opp?"Up "+ (us + res.rows[0].mapreset - opp):us + res.rows[0].mapreset < opp?"Down " + (opp - us - res.rows[0].mapreset):"Tied"}
+        ${res.rows[0].mapreset != 0?(res.rows[0].mapreset > 0?' (Up ':' (Down ') + Math.abs(res.rows[0].mapreset) + ' after reset)':''}`);
       tvtUpdate[channel] = Date.now() + 5000;
     }
   } catch (err) {
@@ -771,6 +967,7 @@ async function tvtscores(channel, force = false) {
 } 
 
 
+// Remove expired challenges.
 async function duelExpiration() {
   try {
     let client = await pool.connect();
@@ -781,7 +978,9 @@ async function duelExpiration() {
   }
 }
 
+
 // Twitch bot subscription handler.
+// @ts-ignore
 bot.on('subscription', (channel, username, method, message, userstate) => {
   if (!userIds[channel.substring(1)].subs) return;
   bot.say(channel, `${username} Thank you for the sub, welcome to the Huskies huskHype huskLove`);
@@ -789,6 +988,7 @@ bot.on('subscription', (channel, username, method, message, userstate) => {
 
 
 // Twitch bot resubscription handler.
+// @ts-ignore
 bot.on('resub', (channel, username, months, message, userstate, methods) => {
   if (!userIds[channel.substring(1)].subs) return;
   bot.say(channel, `${username} Thank you for the ${userstate['msg-param-cumulative-months']} month resub huskHype huskLove`);
@@ -832,7 +1032,9 @@ let game_modes = {
   'br_dbd_playlist_wz330/cal_iron_solos': 'Caldera Iron Trial Solos',
   'br_mendota_playlist_wz330': 'Operation Monarch',
   'br_mendota_playlist_wz330/op_mon': 'Monarch Quads',
-  'br_respect_playlist_wz335/respect': 'Champion of Caldera'
+  'br_respect_playlist_wz335/respect': 'Champion of Caldera',
+  'br_rebirth_playlist_wz325/afd_resurgence': 'Totally Normal Rebirth',
+  'br_playlist_wz335/rebirthexfilttrios': 'Rebirth Exfil Trios'
 };
 
 let baseCookie = "new_SiteId=cod; ACT_SSO_LOCALE=en_US;country=US;";
@@ -861,6 +1063,7 @@ let defaultBaseURL = "https://my.callofduty.com/api/papi-client/";
 
 let symAxios = axios.create({
   headers: {
+      // @ts-ignore
       'Client-ID': client_config.client_id,
       'Authorization': 'Bearer ' + account_config.access_token,
       'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -891,6 +1094,7 @@ function apiErrorHandling(error) {
                       default:
                           return apiErrorMessage;
                   }
+                  // @ts-ignore
                   break;
               case 401:
                   return '401 - Unauthorized. Incorrect username or password.';
@@ -915,6 +1119,7 @@ function apiErrorHandling(error) {
 
 function postReq(url, data, headers = null) {
   return new Promise((resolve, reject) => {
+      // @ts-ignore
       loginAxios.post(url, data, headers).then(response => {
           resolve(response.data);
       }).catch((error) => {
@@ -996,42 +1201,33 @@ function lifetime(gamertag, platform) {
 
 // Create server.
 const app = express();
-app.use(express.json());
+
 import bodyParser from 'body-parser';
-let jsonParser = bodyParser.json();
+import cookieParser from 'cookie-parser';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import favicon from 'serve-favicon';
+import Profanity from 'profanity-js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const jsonParser = bodyParser.json();
+const profanity = new Profanity();
+
+app.use(express.json());
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'node_modules')));
-import cookieParser from 'cookie-parser';
 app.use(cookieParser());
+app.use(favicon(path.join(__dirname, 'favicon.ico')));
 
 
 // Home page.
-app.get('/', (request, response) => {
-  const homepage = fs.readFileSync("./page.html").toString('utf-8');
-  response.send(homepage);
-});
-
-
-// States.
-let states = [];
-
-
-// Redirect.
-app.get('/redirect', (request, response) => {
-  response.sendFile(path.join(__dirname, 'twitchtest.html'));
-});
-
-
-// 
-app.get('/twitchtest/:channel', async (request, response) => {
+app.get('/', async (request, response) => {
   let cookies = request.cookies;
+  let page;
   if (cookies["auth"]) {
-    got('https://id.twitch.tv/oauth2/validate', {
+    await got('https://id.twitch.tv/oauth2/validate', {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${cookies["auth"]}`
@@ -1040,31 +1236,543 @@ app.get('/twitchtest/:channel', async (request, response) => {
       if (res.statusCode === 200) {
         let client = await pool.connect();
         let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
-        if (rows[0].perms.split(',').includes(request.params.channel)) {
-          fs.readFile(path.join(__dirname, '2v2test.txt'), 'utf8', (err, data) => {
-            if (err) {
-              throw new Error(err.message);
-            }
+        client.release();
 
-            data = data.replace(/HusKerrs/g, request.params.channel);
-            response.send(data);
-          });
+        if (rows.length) {
+          page = fs.readFileSync('./html/page.html').toString('utf-8');
+          page = page.replace(/#pref_name#/g, userIds[rows[0].userid].pref_name)
+          page = page.replace(/#channel#/g, userIds[rows[0].userid].user_id);
+          page = page.replace(/#editors#/g, `<a href="/editors/${rows[0].userid}"><div class="button">Manage your Editors</div></a><br>`);
+          page = page.replace(/#checked#/g, userIds[rows[0].userid].twitch?'checked':'');
+          page = page.replace('Login to Twitch', 'Logout of Twitch');
+          let perms = rows[0]&&rows[0].perms?rows[0].perms.split(','):'';
+          if (!perms.length) {
+            page = page.replace(/#Permissions#/g, '');
+          } else {
+            let str = '<h3>Permissions:</h3>';
+            for (let i = 0; i < perms.length; i++) {
+              str += `<a href="/edit/${perms[i]}"><div class="button">${userIds[perms[i]].pref_name}</div></a>`;
+            }
+            page = page.replace(/#Permissions#/g, str);
+          }
         } else {
-          response.send("You do not have access to this page."); 
+          response.redirect('/login');
+          return;
         }
+        response.send(page); 
+      } else {
+        page = fs.readFileSync('./html/not_enabled.html').toString('utf-8');
+        page = page.replace(/#Placeholder#/g, `<a href="/login"><div class="button">It looks like you haven't logged in with Twitch yet. Click here to do that.</div></a>`);
+        response.send(page); 
       }
     }).catch(err => {
       console.log(err);
       response.send(err);
+      return;
     });
 
   } else {
-    let state = makeid(15);
-    states[state] = request.params.channel;
-    response.send(`<!DOCTYPE html><html><h1>Please authenticate with Twitch</h1><a href="https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${process.env.CLIENT_ID}&redirect_uri=http://localhost:6969/redirect&scope=&state=${state}">Click here to authorize</a></html>`);
+    page = fs.readFileSync('./html/not_enabled.html').toString('utf-8');
+    page = page.replace(/#Placeholder#/g, `<a href="/login"><div class="button">It looks like you haven't logged in with Twitch yet. Click here to do that.</div></a>`);
+    response.send(page); 
+  }
+});
+
+
+// Enable/disable.
+app.get('/enable/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.sendStatus(404);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    userIds[request.params.channel].twitch = !userIds[request.params.channel].twitch;
+
+    client = await pool.connect();
+    await client.query(`UPDATE allusers SET twitch = ${userIds[request.params.channel].twitch} WHERE user_id = '${request.params.channel}';`);
+    client.release();
+
+    if (userIds[request.params.channel].twitch) {
+      bot.join(request.params.channel);
+    } else {
+      bot.part(request.params.channel);
+    }
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+
+});
+
+
+// Page for other user.
+app.get('/edit/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.status(404);
+      response.redirect('/');
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.status(401);
+        response.redirect('/');
+        return;
+      }
+    } else {
+      response.status(401);
+      response.redirect('/');
+      return;
+    }
+
+    await got('https://id.twitch.tv/oauth2/validate', {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${cookies['auth']}`
+      }
+    }).then(async res => {
+      if (res.statusCode === 200) {
+        client = await pool.connect();
+        let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies['auth']}';`)).rows;
+        client.release();
+
+        if (rows.length && rows[0].perms.split(',').includes(request.params.channel.toLowerCase())) {
+          let page = fs.readFileSync('./html/page.html').toString('utf-8');
+          page = page.replace(/#pref_name#/g, userIds[request.params.channel.toLowerCase()].pref_name);
+          page = page.replace(/#channel#/g, userIds[request.params.channel.toLowerCase()].user_id);
+          page = page.replace(/#Permissions#/g, '');
+          page = page.replace(/#editors#/g, '');
+          page = page.replace(/#checked#/g, userIds[request.params.channel.toLowerCase()].twitch?'checked':'');
+          page = page.replace(/Login to Twitch/g, 'Logout of Twitch');
+
+          response.send(page);
+        } else {
+          response.status(403);
+          response.redirect('/');
+        }
+      } else {
+        response.status(403);
+        response.redirect('/');
+      }
+    }).catch(err => {
+      console.log(err);
+      response.status(500);
+      response.redirect('/');
+    })
+  } catch (err) {
+    console.log(err);
+    response.status(500);
+    response.redirect('/');
+  }
+});
+
+
+// Commands page.
+app.get('/commands/:channel', (request, response) => {
+  let comPage;
+  if (Object.keys(userIds).includes(request.params.channel.toLowerCase())) {
+    comPage = fs.readFileSync("./html/commands.html").toString('utf-8');
+    comPage = comPage.replace(/#Placeholder#/g, userIds[request.params.channel.toLowerCase()]["pref_name"]);
+    comPage = comPage.replace('let tabsEnabled = {};', `let tabsEnabled = {
+      'Warzone Stats / Matches': ${userIds[request.params.channel.toLowerCase()].matches},
+      'Revolver Roulette': ${userIds[request.params.channel.toLowerCase()].revolverroulette},
+      'Coinflip': ${userIds[request.params.channel.toLowerCase()].coinflip},
+      'Rock Paper Scissors': ${userIds[request.params.channel.toLowerCase()].rps},
+      'Big Vanish': ${userIds[request.params.channel.toLowerCase()].bigvanish},
+      'Custom Tourney': ${userIds[request.params.channel.toLowerCase()].customs},
+      'Two vs Two': ${userIds[request.params.channel.toLowerCase()]["two_v_two"]},
+      'Duels': ${userIds[request.params.channel.toLowerCase()].duel}
+    };`);
+  } else {
+    response.status(404);
+    comPage = fs.readFileSync("./html/not_found.html").toString('utf-8');
+  }
+  let cookies = request.cookies;
+  if (cookies["auth"]) {
+    comPage = comPage.replace('Login to Twitch', 'Logout of Twitch');
+  }
+  response.send(comPage);
+});
+
+
+// Editors.
+app.get('/editors/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.sendStatus(404);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || rows[0].userid !== request.params.channel.toLowerCase()) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    let page = fs.readFileSync('./html/editors.html').toString('utf-8');
+
+    client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM permissions WHERE perms LIKE '%${request.params.channel}%';`)).rows;
+    client.release();
+
+    let str = '';
+    for (let i = 0; i < rows.length; i++) {
+      let perms = rows[i].perms.split(',');
+      if (perms.includes(request.params.channel)) {
+        str += `<tr><th>${rows[0].userid}</th><th><div class="button" onclick="remove(this)">Remove</div></th></tr>`;
+      }
+    }
+    page = page.replace(/#editors#/g, str);
+    page = page.replace(/#pref_name#/g, userIds[request.params.channel].pref_name);
+    page = page.replace(/#channel#/g, userIds[request.params.channel].user_id);
+
+    response.send(page);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+});
+
+
+// Add editor.
+app.get('/addeditor/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !request.get('editor')) {
+      response.sendStatus(404);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || rows[0].userid !== request.params.channel.toLowerCase()) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM permissions WHERE userid = '${request.get('editor')}';`)).rows;
+    if (!rows.length) {
+      await client.query(`INSERT INTO permissions(userid, perms) VALUES ('${request.get('editor')}', '${request.params.channel}')`);
+    } else if (!rows[0].perms.split(',').includes(request.params.channel)) {
+      await client.query(`UPDATE permissions SET perms = perms || ',${request.params.channel}' WHERE userid = '${request.get('editor')}';`);
+    }
+    client.release();
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+});
+
+
+// Remove editor.
+app.get('/removeeditor/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.sendStatus(404);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || rows[0].userid !== request.params.channel) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    if (!request.get('editor')) {
+      response.sendStatus(404);
+      return;
+    }
+
+    client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM permissions WHERE userid = '${request.get('editor')}';`)).rows;
+    let perms = rows[0].perms.split(',');
+    perms.splice(rows[0].perms.indexOf(request.params.channel), 1);
+    await client.query(`UPDATE permissions SET perms = '${perms.join(',')}' WHERE userid = '${request.get('editor')}';`);
+    client.release();
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+});
+
+
+// States.
+let states = [];
+
+
+// Modules.
+app.get('/modules/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.sendStatus(404);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    let page = fs.readFileSync('./html/modules.html').toString('utf-8');
+    page = page.replace(/#Placeholder#/g, userIds[request.params.channel.toLowerCase()].user_id);
+    page = page.replace('let tabsEnabled = {};', `let tabsEnabled = {
+      'Warzone Stats / Matches': ${userIds[request.params.channel.toLowerCase()].matches},
+      'Revolver Roulette': ${userIds[request.params.channel.toLowerCase()].revolverroulette},
+      'Coinflip': ${userIds[request.params.channel.toLowerCase()].coinflip},
+      'Rock Paper Scissors': ${userIds[request.params.channel.toLowerCase()].rps},
+      'Big Vanish': ${userIds[request.params.channel.toLowerCase()].bigvanish},
+      'Custom Tourney': ${userIds[request.params.channel.toLowerCase()].customs},
+      'Two vs Two': ${userIds[request.params.channel.toLowerCase()]["two_v_two"]},
+      'Duels': ${userIds[request.params.channel.toLowerCase()].duel}
+    };`);
+    page = page.replace(/#Acti#/g, userIds[request.params.channel.toLowerCase()] && userIds[request.params.channel.toLowerCase()].acti_id?userIds[request.params.channel.toLowerCase()].acti_id:''); 
+    page = page.replace(/#pref_name#/g, userIds[request.params.channel.toLowerCase()].pref_name || '');
+
+    response.send(page);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+});
+
+
+// Enable/disable modules.
+app.get('/modules/:channel/:module', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.status(401);
+        response.redirect('/');
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    if (request.params.module === 'two_v_two' && tvtInt[request.params.channel]) {
+      clearInterval(tvtInt[request.params.channel]);
+      delete tvtInt[request.params.channel];
+    }
+
+    let str = '';
+    if (request.params.module === 'matches' && (userIds[request.params.channel].acti_id === '' || userIds[request.params.channel].acti_id !== decodeURIComponent(request.get('Acti') || ''))) {
+      if (profanity.isProfane(request.get('Acti') || '')) throw new Error('No profanity allowed.');
+      str += `, acti_id = '${decodeURIComponent(request.get('Acti') || '')}'`;
+      userIds[request.params.channel].acti_id = decodeURIComponent(request.get('Acti') || '');
+      if (userIds[request.params.channel].acti_id === '') {
+        userIds[request.params.channel].uno_id = '';
+        str += `, uno_id = ''`;
+      }
+    }
+
+    // @ts-ignore
+    if (request.params.module === 'matches' && !userIds[request.params.channel].matches && (userIds[request.params.channel].acti_id !== decodeURIComponent(request.get('Acti')) || userIds[request.params.channel].uno_id === '')) {
+      let data = await last20(request.get('Acti'), 'uno');
+      str += `, uno_id = '${data.matches[0].player.uno}'`;
+    }
+
+    userIds[request.params.channel][request.params.module] = !userIds[request.params.channel][request.params.module];
+    client = await pool.connect();
+    await client.query(`UPDATE allusers SET ${request.params.module} = ${userIds[request.params.channel][request.params.module]}${str} WHERE user_id = '${request.params.channel}';`);
+    client.release();
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(err.toString().includes('not allowed')?401:err.toString().includes('Not found')?404:500);
+  }
+});
+
+
+// Set new preferred name.
+app.get('/newname/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.sendStatus(404);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
+    if (profanity.isProfane(request.get('pref_name') || '')) throw new Error('No profanity allowed.');
+    userIds[request.params.channel].pref_name = request.get('pref_name');
+
+    client = await pool.connect();
+    await client.query(`UPDATE allusers SET pref_name = '${request.get('pref_name')}' WHERE user_id = '${request.params.channel}';`);
+    client.release();
+
+    response.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+});
+
+
+// Manage editors.
+app.get('/editors/:channel', async (request, response) => {
+  try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.status(404);
+      response.redirect('/');
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.status(401);
+        response.redirect('/');
+        return;
+      }
+    } else {
+      response.status(401);
+      response.redirect('/');
+      return;
+    }
+
+    
+  } catch (err) {
+    console.log(err);
+    response.sendStatus(500);
+  }
+});
+
+
+// Redirect.
+app.get('/redirect', (request, response) => {
+  response.send(fs.readFileSync("./html/redirect.html").toString("utf-8"));
+});
+
+
+// Log in to Twitch.
+app.get('/login', async (request, response) => {
+  let cookies = request.cookies;
+  if (!cookies["auth"]) {
+    let state;
+    do {
+      state = makeid(20);
+    } while (states.includes(state));
+    states[state] = '#login#';
+    let page = fs.readFileSync('./html/verify.html').toString('utf-8');
+    // @ts-ignore
+    page = page.replace('${process.env.CLIENT_ID}', process.env.CLIENT_ID);
+    page = page.replace('${state}', state);
+    response.send(page);
     setTimeout(function() {
-      if (states.indexOf(state) > -1) states.splice(states.indexOf(state), 1);
+      if (states.indexOf(state) > -1) delete states[state];
     }, 30000);
+  } else {
+    let client = await pool.connect();
+    await client.query(`UPDATE permissions SET bearer = '' WHERE bearer = '${cookies["auth"]}';`);
+    client.release();
+    response.clearCookie('auth', {
+      'domain': '.zhekbot.com',
+      secure: true,
+      httpOnly: true
+    });
+    response.redirect('/');
   }
 });
 
@@ -1072,7 +1780,13 @@ app.get('/twitchtest/:channel', async (request, response) => {
 // Verify state.
 app.get('/verify', (request, response) => {
   try {
-    if (Object.keys(states).includes(request.get("state"))) {
+    if (request.get("state") === "access_denied") {
+      console.log("Access denied in login.");
+      response.send("Access was denied.");
+      return;
+    }
+    
+    if (Object.keys(states).includes(request.get("state") || '')) {
       got('https://id.twitch.tv/oauth2/token', {
         method: "POST",
         headers: {
@@ -1090,25 +1804,45 @@ app.get('/verify', (request, response) => {
           let details = JSON.parse(res.body).data;
           let client = await pool.connect();
           let rows = (await client.query(`SELECT * FROM permissions WHERE userid = '${details[0]["display_name"].toLowerCase()}';`)).rows;
-          if (rows.length) {
-            let perms = rows[0].perms.split(',');
-            if (!perms.includes(states[request.get("state")])) {
-              response.send("You do not have access to this page.");
-            } else {
-              await client.query(`UPDATE permissions SET bearer = '${JSON.parse(resp.body)["access_token"]}' WHERE userid = '${details[0]["display_name"].toLowerCase()}';`);
-              response.setHeader("Set-Cookie", `auth=${JSON.parse(resp.body)["access_token"]}; Secure; HttpOnly`);
-              fs.readFile(path.join(__dirname, '2v2test.txt'), 'utf8', (err, data) => {
-                if (err) {
-                  throw new Error(err.message);
-                }
-
-                data = data.replace(/HusKerrs/g, states[request.get("state")]);
-                response.send(data);
-              });
-            }
+          // @ts-ignore
+          if (rows.length && (rows[0].perms.split(',').includes(states[request.get("state")]) || details[0]["display_name"].toLowerCase() === states[request.get("state")] || states[request.get("state")] === "#login#")) {
+            await client.query(`UPDATE permissions SET bearer = '${JSON.parse(resp.body)["access_token"]}' WHERE userid = '${details[0]["display_name"].toLowerCase()}';`);
+            response.cookie("auth", JSON.parse(resp.body)["access_token"], { maxAge: 1000*JSON.parse(resp.body).expires_in, secure: true, httpOnly: true, domain: `.zhekbot.com` });
+            response.send("Success.");
           } else {
-            response.send("You do not have access to this page.");
+            // @ts-ignore
+            if (details[0]["display_name"].toLowerCase() === states[request.get("state")] || states[request.get("state")] === '#login#') {
+              await client.query(`INSERT INTO permissions(userid, bearer) VALUES ('${details[0]["display_name"].toLowerCase()}', '${JSON.parse(resp.body)["access_token"]}');`);
+              response.cookie("auth", JSON.parse(resp.body)["access_token"], { maxAge: 1000*JSON.parse(resp.body).expires_in, secure: true, httpOnly: true, domain: `.zhekbot.com` });
+              response.send("Success.");
+            } else { 
+              response.send("Login request failed."); 
+              client.release();
+              return;
+            }
           }
+
+          if (!userIds[details[0]["display_name"].toLowerCase()]) {
+            userIds[details[0]["display_name"].toLowerCase()] = {
+              "user_id": details[0]["display_name"].toLowerCase(),
+              "uno_id": '',
+              "platform": "uno",
+              "customs": false,
+              "matches": false,
+              "revolverroulette": false,
+              "coinflip": false,
+              "rps": false,
+              "bigvanish": false,
+              "acti_id": '',
+              "subs": false,
+              "two_v_two": false,
+              "twitch": false,
+              "duel": false,
+              "pref_name": details[0]["display_name"]
+            };
+            await client.query(`INSERT INTO allusers(user_id, pref_name) VALUES ('${details[0]["display_name"].toLowerCase()}', '${details[0]["display_name"]}');`);
+          }
+
           client.release();
         }).catch(err => {
           console.log(err);
@@ -1120,7 +1854,7 @@ app.get('/verify', (request, response) => {
       });
     } else {
       console.log("Invalid state.");
-      response.send("Invalid state.");
+      response.send("The request has expired, please try again.");
     }
   } catch (err) {
     console.log(err);
@@ -1142,28 +1876,35 @@ function makeid(length) {
 
 
 // 2v2
-app.get('/twovtwo', (request, response) => {
+app.get('/twovtwo/:channel', async (request, response) => {
   try {
-    response.sendFile(path.join(__dirname, 'two_v_two.html'));
-  } catch (err) {
-    console.log(err);
-    response.send(err.message);
-  }
-});
-
-
-// 2v2
-app.get('/twovtwo/:channel', (request, response) => {
-  try {
-    if (!userIds[request.params.channel]) throw new Error(`zHekLeR bot not enabled in channel: ${request.params.channel}.`);
-    fs.readFile(path.join(__dirname, 'two_v_two.html'), 'utf8', (err, data) => {
-      if (err) {
-        throw new Error(err.message);
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel]) {
+      response.status(404);
+      response.send(fs.readFileSync('./html/not_found.html'));
+      return;
+    }
+    
+    let cookies = request.cookies;
+    if (cookies["auth"]) {
+      let client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.status(401);
+        response.redirect('/');
+        return;
       }
+    } else {
+      response.status(401);
+      response.redirect('/');
+      return;
+    }
 
-      data = data.replace(/HusKerrs/g, request.params.channel);
-      response.send(data);
-    });
+    let page = fs.readFileSync('./html/two_v_two.html').toString('utf-8');
+    page = page.replace(/#Placeholder#/g, userIds[request.params.channel.toLowerCase()]["pref_name"]);
+    page = page.replace(/#channel#/g, userIds[request.params.channel].user_id);
+    response.send(page);
   } catch (err) {
     console.log(err);
     response.send(err.message);
@@ -1174,13 +1915,47 @@ app.get('/twovtwo/:channel', (request, response) => {
 // Get 2v2 scores.
 app.get ('/twovtwoscores/:channel', async (request, response) => {
   try {
-    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.status(401);
+        response.redirect('/');
+        return;
+      }
+    } else {
+      response.status(401);
+      response.redirect('/');
+      return;
+    }
 
-    let client = await pool.connect();
+    client = await pool.connect();
     let res = await client.query(`SELECT * FROM twovtwo WHERE userid = '${request.params.channel}';`);
+    if (!res.rows.length) {
+      res.rows = [{ 
+        hkills: 0,
+        tkills: 0,
+        o1kills: 0,
+        o2kills: 0,
+        tname: '',
+        o1name: '',
+        o2name: '',
+        mapreset: 0
+      }];
+      await client.query(`INSERT INTO twovtwo(userid, hkills, tkills, o1kills, o2kills, tname, o1name, o2name, mapreset) VALUES ('${request.params.channel}', 0, 0, 0, 0, '', '', '', 0);`);
+    }
     client.release();
 
-    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills} ${res.rows[0].tname} ${res.rows[0].o1name} ${res.rows[0].o2name} ${userIds[res.rows[0].userid] && userIds[res.rows[0].userid]["two_v_two"]} ${userIds[res.rows[0].tname] && userIds[res.rows[0].tname]["two_v_two"]} ${userIds[res.rows[0].o1name] && userIds[res.rows[0].o1name]["two_v_two"]} ${userIds[res.rows[0].o2name] && userIds[res.rows[0].o2name]["two_v_two"]} ${tvtInt[request.params.channel]?true:false}`);
+    response.send(`${res.rows[0].hkills} ${res.rows[0].tkills} ${res.rows[0].o1kills} ${res.rows[0].o2kills} ${res.rows[0].tname} ${res.rows[0].o1name} ${res.rows[0].o2name} ${userIds[res.rows[0].userid] && userIds[res.rows[0].userid]["two_v_two"]} ${userIds[res.rows[0].tname] && userIds[res.rows[0].tname]["two_v_two"]} ${userIds[res.rows[0].o1name] && userIds[res.rows[0].o1name]["two_v_two"]} ${userIds[res.rows[0].o2name] && userIds[res.rows[0].o2name]["two_v_two"]} ${tvtInt[request.params.channel]?true:false} ${res.rows[0].mapreset}`);
   } catch (err) {
     console.log(`Error getting 2v2 scores: ${err}`);
     response.send(err.message);
@@ -1191,22 +1966,41 @@ app.get ('/twovtwoscores/:channel', async (request, response) => {
 // Post
 app.get('/post/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
-    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
 
-    let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
+    client = await pool.connect();
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}', mapreset = ${request.get('mapreset') || 0} WHERE userid = '${request.params.channel}';`);
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
-      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, mapreset = ${request.get('mapreset') || 0} WHERE userid = '${request.get('tname')}';`)
     }
     if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
-      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills}, mapreset = ${-1*parseInt(request.get('mapreset') || '0')} WHERE userid = '${request.get('o1name')}';`)
     }
     if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
-      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills}, mapreset = ${-1*parseInt(request.get('mapreset') || '0')} WHERE userid = '${request.get('o2name')}';`)
     }
     client.release();
 
-    response.sendStatus(200);
+    response.sendStatus(tvtInt[request.params.channel.toLowerCase()]?200:201);
   } catch (err) {
     console.log(`Error during 2v2 update: ${err}`);
     response.sendStatus(500);
@@ -1217,9 +2011,28 @@ app.get('/post/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, resp
 // Reset
 app.get('/post/:channel/reset', async (request, response) => {
   try {
-    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
 
-    let client = await pool.connect();
+    client = await pool.connect();
     await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.params.channel}';`);
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
       await client.query(`UPDATE twovtwo SET hKills = 0, tKills = 0, o1Kills = 0, o2Kills = 0 WHERE userid = '${request.get('tname')}';`)
@@ -1243,22 +2056,40 @@ app.get('/post/:channel/reset', async (request, response) => {
 // Enable
 app.post('/post/:channel/enable', jsonParser, async (request, response) => {
   try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client, rows;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel && !rows[0].perms.split(',').includes(request.params.channel))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
     let status = request.body;
     let updates = [];
 
     status['hStatus'] = userIds[request.get('hname')] && status['hStatus'];
-    status['tStatus'] = userIds[request.get('tname')] && status['tStatus'];
-    status['o1Status'] = userIds[request.get('o1name')] && status['o1Status'];
-    status['o2Status'] = userIds[request.get('o2name')] && status['o2Status'];
+    status['tStatus'] = userIds[request.get('tname')] && status['tStatus'] && rows[0].perms && rows[0].perms.split(',').includes(request.get('tname'));
+    status['o1Status'] = userIds[request.get('o1name')] && status['o1Status'] && rows[0].perms && rows[0].perms.split(',').includes(request.get('o1name'));
+    status['o2Status'] = userIds[request.get('o2name')] && status['o2Status'] && rows[0].perms && rows[0].perms.split(',').includes(request.get('o2name'));
 
     if (userIds[request.get('hname')] && userIds[request.get('hname')]["two_v_two"] !== status["hStatus"]) {
       userIds[request.get('hname')]["two_v_two"] = status["hStatus"];
+      // @ts-ignore
       updates[request.get('hname')] = status["hStatus"];
-      if (status["hStatus"]) {
-        console.log(request.get('hname'));
-        tvtInt[request.get('hname')] = setInterval(function(){ tvtscores(request.get('hname')) }, 30000);
-        tvtUpdate[request.get('hname')] = Date.now();
-      } else {
+      if (!status["hStatus"]) {
         clearInterval(tvtInt[request.get('hname')]);
         delete tvtInt[request.get('hname')];
         delete tvtUpdate[request.get('hname')];
@@ -1267,12 +2098,9 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
 
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"] !== status["tStatus"]) {
       userIds[request.get('tname')]["two_v_two"] = status["tStatus"];
+      // @ts-ignore
       updates[request.get('tname')] = status["tStatus"];
-      if (status["tStatus"]) {
-        console.log(request.get('tname'));
-        tvtInt[request.get('tname')] = setInterval(function(){ tvtscores(request.get('tname')) }, 30000);
-        tvtUpdate[request.get('tname')] = Date.now();
-      } else {
+      if (!status["tStatus"]) {
         clearInterval(tvtInt[request.get('tname')]);
         delete tvtInt[request.get('tname')];
         delete tvtUpdate[request.get('tname')];
@@ -1281,11 +2109,9 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
 
     if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"] !== status["o1Status"]) {
       userIds[request.get('o1name')]["two_v_two"] = status["o1Status"];
+      // @ts-ignore
       updates[request.get('o1name')] = status["o1Status"];
-      if (status["o1Status"]) {
-        tvtInt[request.get('o1name')] = setInterval(function(){ tvtscores(request.get('o1name')) }, 30000);
-        tvtUpdate[request.get('o1name')] = Date.now();
-      } else {
+      if (!status["o1Status"]) {
         clearInterval(tvtInt[request.get('o1name')]);
         delete tvtInt[request.get('o1name')];
         delete tvtUpdate[request.get('o1name')];
@@ -1294,11 +2120,9 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
     
     if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"] !== status["o2Status"]) {
       userIds[request.get('o2name')]["two_v_two"] = status["o2Status"];
+      // @ts-ignore
       updates[request.get('o2name')] = status["o2Status"];
-      if (status["o2Status"]) {
-        tvtInt[request.get('o2name')] = setInterval(function(){ tvtscores(request.get('o2name')) }, 30000);
-        tvtUpdate[request.get('o2name')] = Date.now();
-      } else {
+      if (!status["o2Status"]) {
         clearInterval(tvtInt[request.get('o2name')]);
         delete tvtInt[request.get('o2name')];
         delete tvtUpdate[request.get('o2name')];
@@ -1317,7 +2141,7 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
     let str = '';
     let keys = Object.keys(updates);
     
-    let client = await pool.connect();
+    client = await pool.connect();
 
     for (let i = 0; i < keys.length; i++) {
       str += `('${keys[i]}'::text, ${updates[keys[i]]}::bool)${i + 1 === keys.length?'':', '}`;
@@ -1345,16 +2169,40 @@ app.post('/post/:channel/enable', jsonParser, async (request, response) => {
 
 
 // Pause scores
-app.get('/tvtpause/:channel', (request, response) => {
+app.get('/tvtpause/:channel', async (request, response) => {
   try {
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+
+    if (!userIds[request.params.channel].two_v_two) {
+      response.sendStatus(406);
+      return;
+    }
+    
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
+
     if (userIds[request.params.channel] && userIds[request.params.channel]["two_v_two"]) {
       if (tvtInt[request.params.channel]) {
         clearInterval(tvtInt[request.params.channel]);
         delete tvtInt[request.params.channel];
-        response.sendStatus(200);
       } else {
         tvtInt[request.params.channel] = setInterval(function(){tvtscores(request.params.channel)}, 30000);
-        response.sendStatus(201);
       }
     }
 
@@ -1384,6 +2232,8 @@ app.get('/tvtpause/:channel', (request, response) => {
         tvtInt[request.get('o2name')] = setInterval(function(){tvtscores(request.get('o2name'))}, 30000);
       }
     }
+
+    response.sendStatus(tvtInt[request.get('hname')]?201:200);
   } catch (err) {
     console.log(`Error during 2v2 pause: ${err}`);
     response.sendStatus(500);
@@ -1394,25 +2244,43 @@ app.get('/tvtpause/:channel', (request, response) => {
 // Receive scores
 app.get('/send/:channel/:hKills/:tKills/:o1Kills/:o2Kills', async (request, response) => {
   try {
-    if (!userIds[request.params.channel].two_v_two) throw new Error(`2v2 not enabled.`);
+    request.params.channel = request.params.channel.toLowerCase();
+    if (!userIds[request.params.channel] || !userIds[request.params.channel].twitch) {
+      response.sendStatus(405);
+      return;
+    }
+    let cookies = request.cookies;
+    let client;
+    if (cookies["auth"]) {
+      client = await pool.connect();
+      let rows = (await client.query(`SELECT * FROM permissions WHERE bearer = '${cookies["auth"]}';`)).rows;
+      client.release();
+      if (!rows.length || (rows[0].userid !== request.params.channel.toLowerCase() && !rows[0].perms.split(',').includes(request.params.channel.toLowerCase()))) {
+        response.sendStatus(401);
+        return;
+      }
+    } else {
+      response.sendStatus(401);
+      return;
+    }
 
-    let client = await pool.connect();
-    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}' WHERE userid = '${request.params.channel}';`);
+    client = await pool.connect();
+    await client.query(`UPDATE twovtwo SET hkills = ${request.params.hKills}, tkills = ${request.params.tKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, tname = '${request.get('tname')}', o1name = '${request.get('o1name')}', o2name = '${request.get('o2name')}', mapreset = ${parseInt(request.get('mapreset') || '0')} WHERE userid = '${request.params.channel}';`);
     if (userIds[request.get('tname')] && userIds[request.get('tname')]["two_v_two"]) {
-      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills} WHERE userid = '${request.get('tname')}';`)
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.tKills}, tkills = ${request.params.hKills}, o1kills = ${request.params.o1Kills}, o2kills = ${request.params.o2Kills}, mapreset = ${parseInt(request.get('mapreset') || '0')} WHERE userid = '${request.get('tname')}';`)
       await tvtscores(request.get('tname'), true);
     }
     if (userIds[request.get('o1name')] && userIds[request.get('o1name')]["two_v_two"]) {
-      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o1name')}';`)
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o1Kills}, tkills = ${request.params.o2Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills}, mapreset = ${-1*parseInt(request.get('mapreset') || '0')} WHERE userid = '${request.get('o1name')}';`)
       await tvtscores(request.get('o1name'), true);
     }
     if (userIds[request.get('o2name')] && userIds[request.get('o2name')]["two_v_two"]) {
-      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills} WHERE userid = '${request.get('o2name')}';`)
+      await client.query(`UPDATE twovtwo SET hkills = ${request.params.o2Kills}, tkills = ${request.params.o1Kills}, o1kills = ${request.params.hKills}, o2kills = ${request.params.tKills}, mapreset = ${-1*parseInt(request.get('mapreset') || '0')} WHERE userid = '${request.get('o2name')}';`)
       await tvtscores(request.get('o2name'), true);
     }
     client.release();
 
-    await tvtscores(request.params.channel, true);
+    await tvtscores(request.params.channel.toLowerCase(), true);
 
     response.sendStatus(200);
   } catch (err) {
@@ -1433,235 +2301,10 @@ app.get('/wins/:user', async (request, response) => {
 });
 
 
-// Customs on.
-app.get('/customson/:user', async (request, response) => {
-  try {
-    let client;
-    if (!userIds[request.params.user.toLowerCase()]) {
-      console.log(`Adding user: ${request.params.user}`);
-      client = await pool.connect();
-      await client.query(`INSERT INTO allusers(user_id, customs, thruweb) VALUES('${request.params.user.toLowerCase()}', true, true)`);
-      await client.query(`INSERT INTO customs(maps, map_count, multipliers, user_id) VALUES('{"placement": [], "kills": []}'::json, 0, '0 0', '${request.params.user.toLowerCase()}');`);
-      client.release(); 
-      userIds[request.params.user.toLowerCase()] = { user_id: request.params.user.toLowerCase(), customs: true };
-      response.send(`Added ${request.params.user} to database and enabled customs.`);
-    } else if (userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs already enabled for ${request.params.user}.`);
-      return;
-    } else {
-      client = await pool.connect();
-      await client.query(`UPDATE allusers SET customs = true WHERE user_id = '${request.params.user.toLowerCase()}';`);
-      client.release();
-      userIds[request.params.user.toLowerCase()].customs = true;
-      response.send(`Customs enabled for ${request.params.user}.`);
-    }
-  } catch (err) {
-    console.log(`Error customson ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Customs off.
-app.get('/customsoff/:user', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    await client.query(`UPDATE allusers SET customs = false WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    userIds[request.params.user.toLowerCase()].customs = false;
-    response.send(`Customs disabled for ${request.params.user}.`);
-  } catch (err) {
-    console.log(`Error customsoff ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Set maps.
-app.get('/setmaps/:user/:count', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    await client.query(`UPDATE customs SET map_count = ${request.params.count} WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    response.send(`Set maps to ${request.params.count} for ${request.params.user}.`);
-  } catch (err) {
-    console.log(`Error setmaps ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Set placement.
-app.get('/setplacement/:user/:placement', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    await client.query(`UPDATE customs SET multipliers = '${decodeURIComponent(request.params.placement)}' WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    response.send(`Set placement for ${request.params.user}.`);
-  } catch (err) {
-    console.log(`Error setplacement ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Add map.
-app.get('/addmap/:user/:place/:kills', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    let placement = parseInt(request.params.place);
-    let kills = parseInt(request.params.kills);
-    let multis = res.rows[0].multipliers.split(' ');
-    let score;
-    for (let i = multis.length/2; i >= 0; i--) {
-      if (placement >= parseInt(multis[2*i])) {
-        score = kills * parseFloat(multis[(2*i)+1]);
-        break;
-      }
-    }
-    res.rows[0].maps.placement.push(placement);
-    res.rows[0].maps.kills.push(kills);
-    await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    let place;
-    if (placement > 3 && placement < 21) {
-      place = `${placement}th`;
-    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '1') {
-      place = `${placement}st`;
-    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '2') {
-      place = `${placement}nd`;
-    } else if (`${placement}`.charAt(`${placement}`.length - 1) === '3') {
-      place = `${placement}rd`;
-    } else {
-      place = `${placement}th`;
-    }
-    response.send(`Team ${request.params.user} got ${place} place with ${kills} kills for ${score.toFixed(2)} points!`);
-  } catch (err) {
-    console.log(`Error addmap ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Remove map.
-app.get('/removemap/:user', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    res.rows[0].maps.placement.length = res.rows[0].maps.placement.length?res.rows[0].maps.placement.length-1:0;
-    res.rows[0].maps.kills.length = res.rows[0].maps.kills.length?res.rows[0].maps.kills.length-1:0;
-    await client.query(`UPDATE customs SET maps = '${JSON.stringify(res.rows[0].maps)}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    response.send(`Last map for ${request.params.user} has been removed.`);
-  } catch (err) {
-    console.log(`Error removemap ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Map count.
-app.get('/mc/:user', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    let str;
-    if (res.rows[0].maps.placement.length == res.rows[0].map_count) {
-      str = `All maps have been played.`;
-    } else {
-      str = `Map ${res.rows[0].maps.placement.length + 1} of ${res.rows[0].map_count}`;
-    }
-    response.send(str);
-  } catch (err) {
-    console.log(`Error mapcount ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Score.
-app.get('/score/:user', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM customs WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    let score = [];
-    let total = 0;
-    let multis = res.rows[0].multipliers.split(' ');
-    for (let i = 0; i < res.rows[0].maps.placement.length; i++) {
-      let placement;
-      for (let j = multis.length/2; j >= 0; j--) {
-        if (parseInt(res.rows[0].maps.placement[i]) >= parseInt(multis[2*j])) {
-          placement = parseFloat(multis[2*j]);
-          break;
-        }
-      }
-      score.push(`Map ${i + 1}: ${(res.rows[0].maps.kills[i] * placement).toFixed(2)}`);
-      total += res.rows[0].maps.kills[i] * placement;
-    }
-    let str = score.join(' | ');
-    if (score.length < res.rows[0].map_count) str += score.length?` | Map ${score.length + 1}: TBD`:`Map 1: TBD`;
-    str += ` | Total: ${total.toFixed(2)} pts`;
-    response.send(str);
-  } catch (err) {
-    console.log(`Error score ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
-// Reset maps.
-app.get('/resetmaps/:user', async (request, response) => {
-  try {
-    if (!userIds[request.params.user.toLowerCase()] || !userIds[request.params.user.toLowerCase()].customs || !userIds[request.params.user.toLowerCase()].thruweb) {
-      response.send(`Customs not enabled for ${request.params.user}.`);
-      return;
-    }
-    let client = await pool.connect();
-    await client.query(`UPDATE customs SET maps = '{"placement": [], "kills": []}'::json WHERE user_id = '${request.params.user.toLowerCase()}';`);
-    client.release();
-    response.send(`Maps for ${request.params.user} have been reset.`);
-  } catch (err) {
-    console.log(`Error resetmaps ${request.params.user}: ${err.message}`);
-    response.send(`There was an error. Yell at zHekLeR to look into it.`);
-  }
-});
-
-
 // API endpoint to format ban statements for accounts in BrookeAB's chat which were created and followed within 6 hours.
+// @ts-ignore
 app.get('/brookescribers', async (request, response) => {
   try {
-
     // Pull accounts from database.
     let client = await pool.connect();
     let res = await client.query('SELECT * FROM brookescribers;');
@@ -1679,7 +2322,7 @@ app.get('/brookescribers', async (request, response) => {
 
   } catch (err) {
     console.log(err);
-    response.send("Error during brookscribers");
+    response.send(`/w zHekLeR Error during brookescribers @ ${Date.now()}`);
   }
 });
 
@@ -1721,127 +2364,26 @@ async function stats(username, platform) {
 
   } catch (err) {
     console.log(err);
-    return err.toString().includes('private')?'Account is private.':'Error getting stats.';
+    return err.toString().includes('not allowed')?'Account is private.':'Error getting stats.';
   }
 };
-
-
-// Add specific match to database.
-app.get('/addmatch/:matchid/:userid', async (req, response) => {
-  try {
-    // Get all players for this match.
-    let players = (await matchInfo(req.params.matchid)).allPlayers;
-
-    // String to add.
-    let addStr = '';
-
-    // Get timestamp.
-    let timestamp, placement, kills, deaths, gulag_kills, gulag_deaths, streak, game_mode;
-    let lobby_kd = 0;
-
-    // Find user's team name.
-    let teamName;
-    for (let j = 0; j < players.length; j++) {
-      if (players[j].player.uno === String(userIds[req.params.userid].uno_id)) {
-        teamName = players[j].player.team;
-        timestamp = players[j].utcStartSeconds;
-        placement = players[j].playerStats.teamPlacement;
-        kills = players[j].playerStats.kills;
-        deaths = players[j].playerStats.deaths;
-        gulag_kills = players[j].playerStats.gulagKills;
-        gulag_deaths = players[j].playerStats.gulagDeaths;
-        streak = players[j].playerStats.longestStreak;
-        game_mode = game_modes[players[j].mode];
-        break;
-      }
-    }
-    
-    // Teammates?
-    let teammates = [];
-    for (let j = 0; j < players.length; j++) {
-      if (players[j].player.team === teamName && players[j].player.uno !== String(userIds[req.params.userid].uno_id)) {
-        let player = { name: players[j].player.username, kills: players[j].playerStats.kills, deaths: players[j].playerStats.deaths };
-        teammates.push(player);
-        if (teammates.length == 3) break;
-      }
-    }
-
-    // Format placement.
-      placement = String(placement);
-      if (!placement) {
-        placement = "-";
-      } else {
-        placement = placement.length==3?placement.substring(0, 1):placement.substring(0,2);
-        if (placement.length == 2 && placement.charAt(0) == '1') {
-          placement += 'th';
-        } else {
-          placement += placement.charAt(placement.length - 1)==='1'?'st':placement.charAt(placement.length - 1)==='2'?'nd':placement.charAt(placement.length - 1)==='3'?'rd':'th';
-        }
-      }
-      if (placement.includes('undefined')) placement = "-";
-
-    // Create JSON object to add to cache.
-    let body = { 
-      'timestamp': timestamp,
-      'match_id': req.params.matchid,
-      'placement': placement,
-      'kills': kills,
-      'deaths': deaths,
-      'gulag_kills': gulag_kills,
-      'gulag_deaths': gulag_deaths,
-      'streak': streak,
-      'lobby_kd': lobby_kd,
-      'game_mode': game_mode,
-      'teammates': teammates,
-      'user_id': userIds[req.params.userid].acti_id
-    };
-
-    mCache[userIds[req.params.userid].acti_id].push(body);
-
-    addStr = `(${timestamp}, '${req.params.matchid}', '${placement}', ${kills}, ${deaths}, ${gulag_kills}, ${gulag_deaths}, ${streak}, ${lobby_kd}, '${JSON.stringify(teammates)}'::json, '${game_mode}', '${userIds[req.params.userid].acti_id}')`;
-
-    let client = await pool.connect();
-    await client.query(`INSERT INTO matches(timestamp, match_id, placement, kills, deaths, gulag_kills, gulag_deaths, streak, lobby_kd, teammates, game_mode, user_id) VALUES ${addStr};`);
-    client.release();
-
-    response.send(`Match ${req.params.matchid} updated.`);
-  } catch (err) {
-    console.log(`Add match error: ${err}`);
-    response.send(`Add match error.`);
-  }
-});
 
 
 // Get user's last match info.
 async function lastGame(username) { 
   try {
-
-    // Base values.
-    let lastTimestamp = 0;
-    let matchNo = 0;
-
-    // If cache is empty, check for matches in database.
-    if (!mCache[username].length) {
-      let client = await pool.connect();
-      let res = await client.query(`SELECT * FROM matches WHERE user_id = '${username}' AND timestamp = (SELECT MAX(timestamp) FROM matches WHERE user_id = '${username}');`);
-      mCache[username] = res.rows;
-      client.release();
-    } 
+    let client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[username].acti_id}' ORDER BY timestamp DESC LIMIT 1;`)).rows;
+    client.release();
     
     // If cache is still empty, return.
-    if (!mCache[username].length) {
+    if (!rows.length) {
       console.log('No matches found.')
       return 'No matches found.';
     }
 
-    // Get most recent match number and timestamp.
-    for (let i = 0; i < mCache[username].length; i++) {
-      lastTimestamp = mCache[username][i].timestamp > lastTimestamp?mCache[username][i].timestamp:lastTimestamp;
-      matchNo = mCache[username][i].timestamp >= lastTimestamp?i:matchNo;
-    }
-
     // Get match object.
-    let match = mCache[username][matchNo];
+    let match = rows[0];
 
     // Format teammates, if any.
     let teammates = ' | Teammates: ';
@@ -1849,7 +2391,7 @@ async function lastGame(username) {
     for (let i = 0; i < match.teammates.length; i++) { teammates += (!i?'':' | ') + `${match.teammates[i].name} (${match.teammates[i].kills}K, ${match.teammates[i].deaths}D)`; }
     
     // Return response.
-    return `${match.game_mode} | ${match.placement} place | ${decodeURIComponent(username).split('#')[0]} (${match.kills}K, ${match.deaths}D) | Gulag: ${match.gulag_kills?'Won':match.gulag_deaths?'Lost':'-'} ${teammates}`;
+    return `${match.game_mode} | ${match.placement} place | ${userIds[username].pref_name} (${match.kills}K, ${match.deaths}D) | Gulag: ${match.gulag_kills?'Won':match.gulag_deaths?'Lost':'-'} ${teammates}`;
 
   } catch (err) {
     console.log(`Last Game: ${err}`);
@@ -1904,15 +2446,11 @@ async function daily(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
+    let midnight = (DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000) - userIds[username].time_offset;
 
-    // If cache is empty, check for matches in database.
-    if (!mCache[username].length) {
-      let client = await pool.connect();
-      let res = await client.query(`SELECT * FROM matches WHERE user_id = '${username}';`);
-      mCache[username] = res.rows;
-      client.release();
-    }  
+    let client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[username].acti_id}' AND timestamp > ${midnight};`)).rows;
+    client.release();
 
     // Base values.
     let dailyGames = 0;
@@ -1924,19 +2462,18 @@ async function daily(username) {
     let gulag_deaths = 0;
 
     // Increment stats.
-    for (let i = 0; i < mCache[username].length; i++) {
-      if (mCache[username][i].timestamp < midnight) continue;
+    for (let i = 0; i < rows.length; i++) {
       dailyGames++;
-      kGame += mCache[username][i].kills;
-      dGame += mCache[username][i].deaths;
-      wins += mCache[username][i].placement === "1st"?1:0;
-      streak = mCache[username][i].streak > streak?mCache[username][i].streak:streak;
-      gulag_kills += mCache[username][i].gulag_kills;
-      gulag_deaths += mCache[username][i].gulag_deaths;
+      kGame += rows[i].kills;
+      dGame += rows[i].deaths;
+      wins += rows[i].placement === "1st"?1:0;
+      streak = rows[i].streak > streak?rows[i].streak:streak;
+      gulag_kills += rows[i].gulag_kills;
+      gulag_deaths += rows[i].gulag_deaths;
     }
 
     // Return response.
-    return `Daily Stats | Games: ${dailyGames} | Kills/Game: ${dailyGames?(kGame/dailyGames).toFixed(2):'-'} | Deaths/Game: ${dailyGames?(dGame/dailyGames).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):kGame?kGame:'-'} | Wins: ${wins} | Longest Kill Streak: ${streak} | Gulag: ${mCache[username].length?String(gulag_kills) + ' / ' + String(gulag_deaths):'-'}`;
+    return `Daily Stats | Games: ${dailyGames} | Kills/Game: ${dailyGames?(kGame/dailyGames).toFixed(2):'-'} | Deaths/Game: ${dailyGames?(dGame/dailyGames).toFixed(2):'-'} | K/D: ${dGame?(kGame/dGame).toFixed(2):kGame?kGame:'-'} | Wins: ${wins} | Longest Kill Streak: ${streak} | Gulag: ${rows.length?String(gulag_kills) + ' / ' + String(gulag_deaths):'-'}`;
 
   } catch (err) {
     console.log(`Daily: ${err}`);
@@ -1951,27 +2488,22 @@ async function bombs(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
+    let midnight = (DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000) - userIds[username].time_offset;
 
-    // If cache is empty, check for matches in database.
-    if (!mCache[username].length) {
-      let client = await pool.connect();
-      let res = await client.query(`SELECT * FROM matches WHERE user_id = '${username}';`);
-      mCache[username] = res.rows;
-      client.release();
-    } 
+    let client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[username].acti_id}' AND timestamp > ${midnight};`)).rows;
+    client.release();
 
     // Base object.
     let bombs = [];
 
     // Increment stats.
-    for (let i = 0; i < mCache[username].length; i++) {
-      if (mCache[username][i].timestamp < midnight) continue;
-      if (mCache[username][i].kills >= 30) bombs.push(mCache[username][i].kills);
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].kills >= 30) bombs.push(rows[i].kills);
     }
 
     // Return response.
-    return `${decodeURIComponent(username).split('#')[0]} has dropped ${bombs.length} bomb${bombs.length==1?'':'s'} (30+ kill games) today ${bombs.length?'('+bombs.join('K, ')+'K)':''}`;
+    return `${userIds[username].pref_name} has dropped ${bombs.length} bomb${bombs.length==1?'':'s'} (30+ kill games) today ${bombs.length?'('+bombs.join('K, ')+'K)':''}`;
 
   } catch (err) {
     console.log(`Bombs: ${err}`);
@@ -1986,27 +2518,22 @@ async function wins(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
+    let midnight = (DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000) - userIds[username].time_offset;
 
-    // If cache is empty, check for matches in database.
-    if (!mCache[username].length) {
-      let client = await pool.connect();
-      let res = await client.query(`SELECT * FROM matches WHERE user_id = '${username}';`);
-      mCache[username] = res.rows;
-      client.release();
-    } 
+    let client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[username].acti_id}' AND timestamp > ${midnight};`)).rows;
+    client.release();
 
     // Base object.
     let wins = [];
 
     // Increment stats.
-    for (let i = 0; i < mCache[username].length; i++) {
-      if (mCache[username][i].timestamp < midnight) continue;
-      if (mCache[username][i].placement === '1st') wins.push(mCache[username][i].kills);
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].placement === '1st') wins.push(rows[i].kills);
     }
 
     // Return response.
-    return `${decodeURIComponent(username).split('#')[0]} has won ${wins.length} game${wins.length==1?'':'s'} today ${wins.length?'(' + wins.join('K, ') + 'K)':''}`;
+    return `${userIds[username].pref_name} has won ${wins.length} game${wins.length==1?'':'s'} today ${wins.length?'(' + wins.join('K, ') + 'K)':''}`;
 
   } catch (err) {
     console.log(`Wins: ${err}`);
@@ -2021,32 +2548,27 @@ async function gulag(username) {
 
     // Midnight of current day.
     // @ts-ignore
-    let midnight = DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000;
+    let midnight = (DateTime.now().setZone('America/Los_Angeles').startOf('day')/1000) - userIds[username].time_offset;
 
-    // If cache is empty, check for matches in the database.
-    if (!mCache[username].length) {
-      let client = await pool.connect();
-      let res = await client.query(`SELECT * FROM matches WHERE user_id = '${username}';`);
-      mCache[username] = res.rows;
-      client.release();
-    }  
+    let client = await pool.connect();
+    let rows = (await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[username].acti_id}' AND timestamp > ${midnight};`)).rows;
+    client.release();
 
     // Base values.
     let gulag_kills = 0;
     let gulag_deaths = 0;
 
     // Increment stats.
-    for (let i = 0; i < mCache[username].length; i++) {
-      if (mCache[username][i].timestamp < midnight) continue;
-      if (mCache[username][i].gulag_kills) { 
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].gulag_kills) { 
         gulag_kills++;
-      } else if (mCache[username][i].gulag_deaths) {
+      } else if (rows[i].gulag_deaths) {
         gulag_deaths++;
       } 
     }
 
     // Return response.
-    return `${decodeURIComponent(username).split('#')[0]} has ${gulag_kills} win${gulag_kills==1?'':'s'} and ${gulag_deaths} loss${gulag_deaths==1?'':'es'} in the gulag today.`;
+    return `${userIds[username].pref_name} has ${gulag_kills} win${gulag_kills==1?'':'s'} and ${gulag_deaths} loss${gulag_deaths==1?'':'es'} in the gulag today.`;
 
   } catch (err) {
     console.log(`Gulag: ${err}`);
@@ -2195,6 +2717,7 @@ app.get('/wordlestats/:id', async (req, response) => {
 
 
 // Wordle leaderboard!
+// @ts-ignore
 app.get('/wordlelb', async (req, response) => {
   try {
     response.send(await wordle.wordleLb());
@@ -2205,11 +2728,23 @@ app.get('/wordlelb', async (req, response) => {
 });
 
 
+// Default not found page.
+// @ts-ignore
+app.get("*", (req, response) => {
+  response.status(404);
+  let page = fs.readFileSync("./html/not_found.html").toString('utf-8');
+  if (req.cookies["auth"]) {
+    page = page.replace('Login to Twitch', 'Logout of Twitch');
+  }
+  response.send(page);
+});
+
+
 // Pull matches from codtracker between every 5 and store in database.
 async function updateMatches() {
   try {
     Object.keys(userIds).forEach((key, i) => {
-      if (userIds[key].matches) {
+      if (userIds[key].matches && userIds[key].twitch && key !== 'zhekler') {
         setTimeout(async () => {
           try {
             // Get time from a week ago and set base timestamp.
@@ -2223,18 +2758,12 @@ async function updateMatches() {
             await client.query(`DELETE FROM matches WHERE timestamp < ${weekAgo};`);
             
             // If match cache for this user is empty, set it.
-            if (!mCache[userIds[key].acti_id].length) {
-              let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}';`);
-              mCache[userIds[key].acti_id] = res.rows;
-            }
-            
-            // Release client.
+            let res = await client.query(`SELECT * FROM matches WHERE user_id = '${userIds[key].acti_id}' ORDER BY timestamp DESC;`);
+            mCache[userIds[key].acti_id] = res.rows;
             client.release();
             
             // Update timestamp of last match.
-            for (let i = 0; i < mCache[userIds[key].acti_id].length; i++) {
-              lastTimestamp = mCache[userIds[key].acti_id][i].timestamp > lastTimestamp?mCache[userIds[key].acti_id][i].timestamp:lastTimestamp;
-            }
+            lastTimestamp = res.rows.length?res.rows[0].timestamp:lastTimestamp;
             
             // Fetch last 20 matches for user from COD API.
             let data;
@@ -2296,7 +2825,7 @@ async function update(matches, user, lastTimestamp) {
             
       // Set placement.
       placement = String(matches[i].playerStats.teamPlacement);
-      console.log(placement);
+      
       if (!placement) {
         placement = "-";
       } else {
@@ -2393,6 +2922,7 @@ let intervals = [];
 async function authenticate() {
   try {
     await symAxios.get('https://id.twitch.tv/oauth2/validate')
+    // @ts-ignore
     .then(async res => {
         intervals.push(setInterval(() => brookescribers(), 120000));
         console.log("Brookescribers");
@@ -2476,8 +3006,12 @@ async function brookescribers() {
             if (followed > sixAgo) {
               await symAxios.get(`https://api.twitch.tv/helix/users?id=${temp[i].from_id}`)
               .then(res2 => {
+                if (res2.data.data[0]) {
                 let created = (new Date(res2.data.data[0].created_at)).getTime()/1000;
                 if (created > sixAgo && !fLast.includes(res2.data.data[0].login)) them.push(`('${res2.data.data[0].login}', ${followed}, ${created})`);
+                } else {
+                  console.log(`${temp[i].from_id}: ${res2.data}`);
+                }
               })
               .catch(err => {
                 console.log(err);
@@ -2534,10 +3068,6 @@ async function brookescribers() {
         // @ts-ignore
         bot.channels.push(temp[i].user_id);
         gcd[temp[i].user_id] = { };
-        
-        if (userIds[temp[i].user_id]["two_v_two"]) {
-          tvtInt[temp[i].user_id] = setInterval(function() {tvtscores(temp[i].user_id)}, 30000);
-        }
       }
     };
 

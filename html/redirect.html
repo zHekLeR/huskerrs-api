@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>zHekBot - Redirect</title>
+</head>
+<body>
+
+<div id="data"></div>
+<meta id="refresh" http-equiv="refresh" content="3;url=https://www.zhekbot.com/" />
+<script>
+    let pieces = document.location.hash.substring(1).split('&');
+    console.log(pieces);
+    fetch('/verify', {
+        method: "GET",
+        headers: {
+            "access_token": pieces[0].substring(pieces[0].indexOf('=') + 1),
+            "state": pieces[2].substring(pieces[2].indexOf('=') + 1)
+        }
+    }).then(resp => resp.text())
+    .then(res => {
+        console.log(res);
+        document.getElementById("data").innerHTML = 'Redirecting in 3 seconds... If it does not redirect automatically click <a href="https://www.zhekbot.com/">here</a>';
+    }).catch(err => {
+        console.log(err);
+        document.getElementById("data").innerHTML = err;
+    })
+</script>
+
+</body>
+</html>

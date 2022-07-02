@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>zHekBot - Modules</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  font-family: Arial;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  max-height: 5vh;
+  padding: 0vh 1vw;
+  margin: 0;
+  background-color: green;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.content {
+  max-width: 80%;
+  background: white;
+  padding: 25px;
+  margin-left: 10%;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100vw;
+  max-height: fit-content;
+  background-color: green;
+  color: white;
+  text-align: center;
+  padding: 1vh 1vw;
+  font-size: auto;
+}
+
+#twitch {
+    background-color: #9146ff;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.button {
+  background-color: green;
+  border: 1px solid green;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, .1) 0 2px 4px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  outline: 0;
+  padding: 10px 25px;
+  margin: 5px;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 150ms, box-shadow 150ms;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.button:hover {
+  box-shadow: rgba(0, 0, 0, .15) 0 3px 9px 0;
+  transform: translateY(-2px);
+}
+
+/* Style the tab */
+.tab {
+  float: left;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  width: 17%;
+  height: auto;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  display: block;
+  background-color: inherit;
+  color: black;
+  padding: 22px 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  float: left;
+  padding-left: 10px;
+  padding-top: 12px;
+  padding-bottom: 65px;
+  border: 1px solid #ccc;
+  width: 68%;
+  height: auto;
+}
+
+/* Style the tab-enabled */
+.tabenabled {
+  float: left;
+  padding: 15px 12px;
+  width: 15%;
+  height: auto;
+  color: red;
+  overflow: auto;
+}
+
+img { 
+  max-height: 5vh;
+  width: auto; 
+}
+
+</style>
+</head>
+<body>
+  <div class="navbar">
+    <a href="/"><img href="/" src="/images/Logo.png" style="float: left; padding-right: 0.3vw; cursor: pointer;"><button style="background: green; border: none; font-size: 3.25vh; padding-top: 0.5vh; color: white; cursor: pointer;">zHekBot</button></a>
+    <a href="/login" id="twitch" style="padding: 0vh 0.35vw;">
+        <img src="/images/Twitch.png" style="float: left; padding: 0.4vh 0vw;">
+        <button style="border: none; font-size: 2.65vh; color: white; background-color: #9146ff; cursor: pointer; padding-top: 0.7vh;">Logout of Twitch</button>
+    </a>
+</div>
+  <div class="content">
+    <h2><span id='channel'>#pref_name#</span>'s Modules</h2>
+    <br>
+
+    <div class="tab" id="coms">
+    <button class="tablinks" onclick="openCommand(event, 'Warzone Stats / Matches')" id="defaultOpen">Warzone Stats / Matches</button>
+    <button class="tablinks" onclick="openCommand(event, 'Custom Tourney')">Custom Tourney</button>
+    <button class="tablinks" onclick="openCommand(event, 'Two vs Two')">Two vs Two</button>
+    <button class="tablinks" onclick="openCommand(event, 'Duels')">Duels</button>
+    <button class="tablinks" onclick="openCommand(event, 'Revolver Roulette')">Revolver Roulette</button>
+    <button class="tablinks" onclick="openCommand(event, 'Coinflip')">Coinflip</button>
+    <button class="tablinks" onclick="openCommand(event, 'Rock Paper Scissors')">Rock Paper Scissors</button>
+    <button class="tablinks" onclick="openCommand(event, 'Big Vanish')">Big Vanish</button>
+    <button class="tablinks" onclick="openCommand(event, 'Pref Name')">Preferred Name</button>
+    </div>
+
+    <div id="Warzone Stats / Matches" class="tabcontent">
+        <div>Warzone Stats / Matches is currently <span id="matches" class="Warzone Stats / Matches">enabled</span>.</div><br>
+        <div>Activision ID: <input type="text" id="acti" value="#Acti#"></input></div>
+        <div class="button" onclick="enable('matches', 'Warzone Stats / Matches')">Disable</div>
+    </div>
+    <div id="Custom Tourney" class="tabcontent">
+      <div>Custom Tourney is currently <span id="customs" class="Custom Tourney">enabled</span>.</div><br>
+      <div class="button" onclick="enable('customs', 'Custom Tourney')">Disable</div>
+    </div>
+    <div id="Two vs Two" class="tabcontent">
+      <div>Two vs Two is currently <span id="two_v_two" class="Two vs Two">enabled</span>.</div><br>
+      <div class="button" onclick="enable('two_v_two', 'Two vs Two')">Disable</div>
+    </div>
+    <div id="Duels" class="tabcontent">
+      <div>Duels is currently <span id="duels" class="Duels">enabled</span>.</div><br>
+      <div class="button" onclick="enable('duels', 'Duels')">Disable</div>
+    </div>
+    <div id="Revolver Roulette" class="tabcontent">
+      <div>Revolver Roulette is currently <span id="revolverroulette" class="Revolver Roulette">enabled</span>.</div><br>
+      <div class="button" onclick="enable('revolverroulette', 'Revolver Roulette')">Disable</div>
+    </div>
+    <div id="Coinflip" class="tabcontent">
+      <div>Coinflip is currently <span id="coinflip" class="Coinflip">enabled</span>.</div><br>
+      <div class="button" onclick="enable('coinflip', 'Coinflip')">Disable</div>
+    </div>
+    <div id="Rock Paper Scissors" class="tabcontent">
+      <div>Rock Paper Scissors is currently <span id="rps" class="Rock Paper Scissors">enabled</span>.</div><br>
+      <div class="button" onclick="enable('rps', 'Rock Paper Scissors')">Disable</div>
+    </div>
+    <div id="Big Vanish" class="tabcontent">
+      <div>Big Vanish is currently <span id="bigvanish" class="Big Vanish">enabled</span>.</div><br>
+      <div class="button" onclick="enable('bigvanish', 'Big Vanish')">Disable</div>
+    </div>
+    <div id="Pref Name" class="tabcontent">
+      <div>You can update this to reflect capitalization, a nickname, whatever you'd like!</div>
+      <div>Updating it as blank will set it to your Twitch username (most likely all lowercase)</div><br>
+      <div>Your preferred name is currently: <input type="text" id="pref_name" value="#pref_name#"></div>
+      <div class="button" onclick="newname()">Update</div>
+    </div>
+  </div>
+
+  <script>
+      let tabsEnabled = {};
+
+      let keys = Object.keys(tabsEnabled);
+      for (let i = 0; i < keys.length; i++) {
+        if (!tabsEnabled[keys[i]]) { 
+          document.getElementById(keys[i]).getElementsByClassName(keys[i])[0].innerHTML = 'disabled';
+          document.getElementById(keys[i]).getElementsByClassName("button")[0].innerHTML = 'Enable';
+        }
+        document.getElementById(keys[i]).getElementsByClassName("button")[0].style = `background-color: ${tabsEnabled[keys[i]]?'red':'green'}; border: 1px solid ${tabsEnabled[keys[i]]?'red':'green'};`;
+        document.getElementById(keys[i]).getElementsByClassName(keys[i])[0].style = `font-weight: bold; color: ${tabsEnabled[keys[i]]?'green':'red'};`;
+      }
+      
+      function openCommand(evt, evtName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(evtName).style.display = "block";
+        evt.currentTarget.className += " active";
+      }
+      
+      // Get the element with id="defaultOpen" and click on it
+      document.getElementById("defaultOpen").click();
+
+      async function enable(module, evtName) {
+        let button = document.getElementById(evtName).getElementsByClassName('button')[0];
+        button.disabled = true;
+        setTimeout(function() { 
+          button.disabled = false; 
+        }, 1000);
+        if (tabsEnabled[evtName]) {
+          await fetch(`/modules/#Placeholder#/${module}`)
+          .then(res => {
+              if (res.status == 200) {
+                button.innerHTML = 'Enable';
+                button.style = `background-color: gray; border: 1px solid gray;`;
+                tabsEnabled[evtName] = false;
+                document.getElementById(module).innerHTML = tabsEnabled[evtName]?'enabled':'disabled';
+                document.getElementById(module).style = `font-weight: bold; color: ${tabsEnabled[evtName]?'green':'red'};`;
+                setTimeout(function() { button.style = `background-color: green; border 1px solid green;` }, 1000);
+              } else {
+                throw new Error(`${res.status==401?'Account is private.':res.status==404?'Account not found.':res.status==405?'Bot is not enabled.':'Unknown error.'}`);
+              }
+          })
+          .catch(err => {
+              console.log(err);
+              alert(err.message);
+          });
+        } else if (module === 'matches') {
+            let acti = document.getElementById('acti').value;
+            if (!acti.length || acti === '') {
+                alert('You must enter an Activision ID to turn on match tracking.');
+            } else {
+              await fetch(`/modules/#Placeholder#/${module}`, { headers: { 'Acti': encodeURIComponent(acti) } })
+              .then(res => {
+                if (res.status == 200) {
+                  button.innerHTML = 'Disable';
+                  button.style = `background-color: gray; border: 1px solid gray;`;
+                  tabsEnabled[evtName] = true;
+                  document.getElementById(module).innerHTML = tabsEnabled[evtName]?'enabled':'disabled';
+                  document.getElementById(module).style = `font-weight: bold; color: ${tabsEnabled[evtName]?'green':'red'};`;
+                  setTimeout(function() { button.style = `background-color: red; border 1px solid red;` }, 1000);
+                } else {
+                  throw new Error(`${res.status==401?'Account is private.':res.status==404?'Account not found.':res.status==405?'Bot is not enabled.':'Unknown error.'}`);
+                }
+              })
+              .catch(err => {
+                  console.log(err);
+                  alert(err.message);
+              });
+            }
+        } else {
+          await fetch(`/modules/#Placeholder#/${module}`)
+          .then(res => {
+            if (res.status == 200) {
+              button.innerHTML = 'Disable';
+              button.style = `background-color: gray; border: 1px solid gray;`;
+              tabsEnabled[evtName] = true;
+              document.getElementById(module).innerHTML = tabsEnabled[evtName]?'enabled':'disabled';
+              document.getElementById(module).style = `font-weight: bold; color: ${tabsEnabled[evtName]?'green':'red'};`;
+              setTimeout(function() { button.style = `background-color: red; border 1px solid red;`; }, 1000);
+            } else {
+                throw new Error(`${res.status==401?'Account is private.':res.status==404?'Account not found.':res.status==405?'Bot is not enabled.':'Unknown error.'}`);
+            }
+          })
+          .catch(err => {
+              console.log(err);
+              alert(err.message);
+          });
+        }
+      }
+
+      async function newname() {
+        let button = document.getElementById('Pref Name').getElementsByClassName('button')[0];
+        button.style = `background-color: gray; border: 1px solid gray;`;
+        button.disabled = true;
+        setTimeout(function() { 
+          button.style = `background-color: green; border: 1px solid green;`; 
+          button.disabled = false;
+        }, 1000);
+        await fetch(`/newname/#Placeholder#`, { headers: { 'pref_name': encodeURIComponent(document.getElementById('pref_name').value) }})
+        .then(res => {
+          if (res.status != 200) {
+            throw new Error(`Unknown error.`);
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          alert(err.message);
+        });
+      }
+
+      </script>
+           
+    <footer class="footer">Any questions / issues / suggestions? The best way to contact me is on Twitch (zHekLeR) or Discord (zHekLeR#4857).</footer>
+  </body>
+  </html> 

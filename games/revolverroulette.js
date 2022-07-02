@@ -10,7 +10,7 @@ const pool = new Pool({
 
 
 // Revolver Roulette! 1/3 chance to get timed out.
-async function revolverroulette(id) {
+async function revolverroulette(id, channel) {
   try {
 
     // Get random number and determine whether the user won or lost.
@@ -19,14 +19,14 @@ async function revolverroulette(id) {
 
     // Pull user from the Revolver Roulette database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette WHERE user_id = '${id}';`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
     let person = res.rows[0];
 
     if (!person) {
 
       // User has not played before. Add them to the database.
       person = { user_id: id, survive: 0, die: 0 };
-      await client.query(`INSERT INTO revolverroulette(user_id, survive, die)VALUES('${person.user_id}', ${person.survive}, ${person.die});`);
+      await client.query(`INSERT INTO revolverroulette(user_id, survive, die, stream)VALUES('${person.user_id}', ${person.survive}, ${person.die}, '${channel.substring(1)}');`);
       shoot = `@${id}: Revolver Roulette is a game where you have 1/3 chance to be timed out for 5 min. You have been warned.`;
 
     } else {
@@ -34,7 +34,7 @@ async function revolverroulette(id) {
       // Update players stats.
       person.survive += rand?1:0;
       person.die += rand?0:1;
-      await client.query(`UPDATE revolverroulette SET ${rand?'survive':'die'} = ${rand?person.survive:person.die} WHERE user_id = '${id}';`)
+      await client.query(`UPDATE revolverroulette SET ${rand?'survive':'die'} = ${rand?person.survive:person.die} WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`)
       shoot += ` ${id}'s record is ${person.survive} survival${person.survive == 1?'':'s'} and ${person.die} death${person.die == 1?'':'s'}!`;
 
     }
@@ -53,12 +53,12 @@ async function revolverroulette(id) {
 
 
 // Function to get the user's Revolver Roulette stats.
-async function revolverrouletteScore(id) {
+async function revolverrouletteScore(id, channel) {
   try {
 
     // Pull user from the Revolver Roulette database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette WHERE user_id = '${id}';`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
     let person = res.rows[0];
     client.release();
 
@@ -87,12 +87,12 @@ async function revolverrouletteScore(id) {
 
 
 // Function to retrieve the leaderboard for Revolver Roulette.
-async function revolverrouletteLb() {
+async function revolverrouletteLb(channel) {
   try {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette ORDER BY survive DESC LIMIT 3;`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE stream = '${channel.substring(1)}' ORDER BY survive DESC LIMIT 3;`);
     let top = res.rows;
     client.release();
     
@@ -112,12 +112,12 @@ async function revolverrouletteLb() {
 
 
 // Function to retrieve the leaderboard for Revolver Roulette.
-async function revolverrouletteLbDie() {
+async function revolverrouletteLbDie(channel) {
   try {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette ORDER BY die DESC LIMIT 3;`);
+    let res = await client.query(`SELECT * FROM revolverroulette WHERE stream = '${channel.substring(1)}' ORDER BY die DESC LIMIT 3;`);
     let top = res.rows;
     client.release();
     
@@ -137,12 +137,12 @@ async function revolverrouletteLbDie() {
 
 
 // Function to retrieve the leaderboard for Revolver Roulette.
-async function revolverrouletteLbRatio() {
+async function revolverrouletteLbRatio(channel) {
   try {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT user_id, survive, die, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) AS rr ORDER BY percent DESC LIMIT 3;`);
+    let res = await client.query(`SELECT user_id, survive, die, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25 AND stream = '${channel.substring(1)}') AS rr ORDER BY percent DESC LIMIT 3;`);
     let top = res.rows;
     client.release();
     
@@ -162,12 +162,12 @@ async function revolverrouletteLbRatio() {
 
 
 // Function to retrieve the leaderboard for Revolver Roulette.
-async function revolverrouletteLbRatioLow() {
+async function revolverrouletteLbRatioLow(channel) {
   try {
 
     // Pull users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT user_id, survive, die, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25) AS rr ORDER BY percent ASC LIMIT 3;`);
+    let res = await client.query(`SELECT user_id, survive, die, ROUND(survive * 100.0 / (survive + die), 2) AS percent FROM (SELECT * FROM revolverroulette WHERE survive + die >= 25 AND stream = '${channel.substring(1)}') AS rr ORDER BY percent ASC LIMIT 3;`);
     let top = res.rows;
     client.release();
     
@@ -187,12 +187,12 @@ async function revolverrouletteLbRatioLow() {
 
 
 // Function to get the total chat stats for Revolver Roulette.
-async function revolverrouletteTotals() {
+async function revolverrouletteTotals(channel) {
   try {
     
     // Pull all users from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT SUM(survive) AS survives, SUM(die) AS deaths FROM revolverroulette;`);
+    let res = await client.query(`SELECT SUM(survive) AS survives, SUM(die) AS deaths FROM revolverroulette WHERE stream = '${channel.substring(1)}';`);
     let top = res.rows;
     client.release();
     
@@ -206,33 +206,4 @@ async function revolverrouletteTotals() {
 };
 
 
-// Function to get user's timeouts for all games.
-async function allTimes(id) {
-  try {
-
-    // Pull user from the database.
-    let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM revolverroulette LEFT OUTER JOIN coinflip ON (revolverroulette.user_id = coinflip.user_id) LEFT OUTER JOIN rockpaperscissors ON (revolverroulette.user_id = rockpaperscissors.user_id) WHERE revolverroulette.user_id = '${id}' OR coinflip.user_id = '${id}' OR rockpaperscissors.user_id = '${id}';`);
-    let tot = res.rows;
-    client.release();
-
-    if (tot.length == 0) {
-
-      // User has not played any of the chat games.
-      return `${id} has not been timed out in one of the chat games!`;
-
-    } else {
-
-      // Format user's game stats.
-      let ct = (tot[0].die?tot[0].die:0) + (tot[0].wrong?tot[0].wrong:0) + (tot[0].loss?tot[0].loss:0);
-      return `Total Game Timeouts for ${id} | Revolver Roulette: ${tot[0].die?tot[0].die:0} | Coinflip: ${tot[0].wrong?tot[0].wrong:0} | Rock Paper Scissors: ${tot[0].loss?tot[0].loss:0} | Total: ${ct}`;
-
-    }
-  } catch (err) {
-    console.log(err);
-    return;
-  }
-}
-
-
-export { revolverroulette, revolverrouletteScore, revolverrouletteLb, revolverrouletteLbDie, revolverrouletteLbRatio, revolverrouletteLbRatioLow, revolverrouletteTotals, allTimes };
+export { revolverroulette, revolverrouletteScore, revolverrouletteLb, revolverrouletteLbDie, revolverrouletteLbRatio, revolverrouletteLbRatioLow, revolverrouletteTotals };

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>zHekBot - Commands</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  overflow: auto;
+}
+
+.tabcontent > div {
+  padding: 2px 0px;
+}
+
+p {
+  padding-bottom: 5px;
+}
+
+body {
+  top: 0;
+  width: 100vw;
+  font-family: Arial;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  max-height: 5vh;
+  padding: 0vh 1vw;
+  margin: 0;
+  background-color: green;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container {
+  margin-top: 5.5vh;
+  padding: 0vh 1vw;
+  height: 90vh;
+}
+
+/* Style the tab */
+.tab {
+  float: left;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  width: 17%;
+  height: auto;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  display: block;
+  background-color: inherit;
+  color: black;
+  padding: 22px 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  float: left;
+  padding: 1.2vh 1vw;
+  border: 0.1vh solid #ccc;
+  width: 68%;
+  height: fit-content;
+}
+
+/* Style the tab-enabled */
+.tabenabled {
+  float: left;
+  padding: 15px 12px;
+  width: 15%;
+  height: auto;
+  color: red;
+  overflow: auto;
+}
+
+/* Style the mod-only comments */
+.modonly {
+  color: rgb(0, 202, 0);
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100vw;
+  max-height: fit-content;
+  background-color: green;
+  color: white;
+  text-align: center;
+  padding: 1vh 1vw;
+  font-size: auto;
+}
+
+#twitch {
+  background-color: #9146ff;
+  border-radius: 10px;
+}
+
+img { 
+  max-height: 5vh;
+  width: auto; 
+}
+
+</style>
+</head>
+<body>
+  <div class="navbar">
+    <a href="/"><img href="/" src="/images/Logo.png" style="float: left; padding-right: 0.3vw; cursor: pointer;"><button style="background: green; border: none; font-size: 3.25vh; padding-top: 0.5vh; color: white; cursor: pointer;">zHekBot</button></a>
+    <a href="/login" id="twitch" style="padding: 0vh 0.35vw;">
+        <img src="/images/Twitch.png" style="float: left; padding: 0.4vh 0vw;">
+        <button style="border: none; font-size: 2.65vh; color: white; background-color: #9146ff; cursor: pointer; padding-top: 0.7vh;">Login to Twitch</button>
+    </a>
+</div>
+
+<div class="container">
+<h2>#Placeholder#'s Commands</h2>
+<br>
+<p>Click each tab to see the available commands.</p>
+
+<div class="tab" id="coms">
+  <button class="tablinks" onclick="openCommand(event, 'Warzone Stats / Matches')" id="defaultOpen">Warzone Stats / Matches</button>
+  <button class="tablinks" onclick="openCommand(event, 'Custom Tourney')">Custom Tourney</button>
+  <button class="tablinks" onclick="openCommand(event, 'Two vs Two')">Two vs Two</button>
+  <button class="tablinks" onclick="openCommand(event, 'Duels')">Duels</button>
+  <button class="tablinks" onclick="openCommand(event, 'Revolver Roulette')">Revolver Roulette</button>
+  <button class="tablinks" onclick="openCommand(event, 'Coinflip')">Coinflip</button>
+  <button class="tablinks" onclick="openCommand(event, 'Rock Paper Scissors')">Rock Paper Scissors</button>
+  <button class="tablinks" onclick="openCommand(event, 'Big Vanish')">Big Vanish</button>
+</div>
+
+<div id="Warzone Stats / Matches" class="tabcontent">
+  <h3>!stats</h3>
+  <div>Returns lifetime Warzone stats for the player (not including Rebirth or Plunder).</div> 
+  <div>You may also use !kd to retrieve these stats.</div>
+  <br>
+  <h3>!weekly</h3>
+  <div>Returns weekly stats for the player. You may also use !lastgames to retrieve these stats.</div>
+  <div>*If the bot hasn't been in the channel for a week yet, these may not be accurate.</div>
+  <br>
+  <h3>!daily</h3>
+  <div>Returns daily stats for the player.</div> 
+  <br>
+  <h3>!wins</h3>
+  <div>Returns the number of daily wins with how many kills in each game.</div>
+  <br>
+  <h3>!bombs</h3>
+  <div>Returns the number of daily "bombs" with how many kills in each game.</div>
+  <div>A bomb is classed as a 30+ kills game but this may be subject to change on an individual player basis.</div>
+  <br>
+  <h3>!gulag</h3>
+  <div>Returns the player's daily win-loss ratio in the gulag.</div>
+  <br>
+  <h3>!lastgame</h3>
+  <div>Returns the team's performance in the previous game.</div>
+  <br>
+  <h3>!teammates</h3>
+  <div>Returns the 5 teammates that this player squads up with the most.</div>
+  <div>*If the bot hasn't been in the channel for a week yet, these may not be accurate.</div>
+  <br>
+  <h3>!gamemodes</h3>
+  <div>Returns the 5 game modes that this player queues the most.</div>
+  <div>*If the bot hasn't been in the channel for a week yet, these may not be accurate.</div>
+  <br>
+  <h3>!matcheson</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enables match tracking.</div>
+  <br>
+  <h3>!matchesoff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disables match tracking.</div>
+</div>
+
+<div id="Revolver Roulette" class="tabcontent">
+  <h3>!rr</h3>
+  <div>Play a round of Revolver Roulette. You have 2/3 chance to survive and 1/3 chance to be timed out for 5 minutes.</div>
+  <br>
+  <h3>!rrscore</h3>
+  <div>Check your score in Revolver Roulette.</div>
+  <br>
+  <h3>!rrscoreother [ username ]</h3>
+  <div>Check someone else's score in Revolver Roulette.</div>
+  <br>
+  <h3>!rrlb</h3>
+  <div>Shows the 3 users with the most survivals in Revolver Roulette.</div>
+  <br>
+  <h3>!rrlbdie</h3>
+  <div>Shows the 3 users with the most deaths in Revolver Roulette.</div>
+  <br>
+  <h3>!rrlbratio</h3>
+  <div>Shows the 3 users with the best win / loss ratio in Revolver Roulette.</div>
+  <br>
+  <h3>!rrlbratiolow</h3>
+  <div>Shows the 3 users with the worst win / loss ratio in Revolver Roulette.</div>
+  <br>
+  <h3>!rrtotals</h3>
+  <div>Show the total survivals and deaths for all users in Revolver Roulette.</div>
+  <br>
+  <h3>!rron</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enable Revolver Roulette.</div>
+  <br>
+  <h3>!rroff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disable Revolver Roulette.</div>
+</div>
+
+<div id="Coinflip" class="tabcontent">
+  <h3>!coin [ heads / tails ]</h3>
+  <div>Guess what side the coin is on. If you lose, you will be timed out for 1 minute.</div>
+  <br>
+  <h3>!coinscore</h3>
+  <div>Check your score in Coinflip.</div>
+  <br>
+  <h3>!coinlb</h3>
+  <div>Show the user with the most wins and the user with the most losses.</div>
+  <br>
+  <h3>!coinon</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enables Coinflip.</div>
+  <br>
+  <h3>!coinoff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disables Coinflip.</div>
+</div>
+
+<div id="Rock Paper Scissors" class="tabcontent">
+  <h3>!rps [ rock / paper / scissors ]</h3>
+  <div>Play Rock Paper Scissors with the bot. If you lose, you will be timed out for 1 minute.</div>
+  <br>
+  <h3>!rpsscore</h3>
+  <div>Check your score in Rock Paper Scissors.</div>
+  <br>
+  <h3>!rpslb</h3>
+  <div>Show the user with the most wins and the user with the most losses.</div>
+  <br>
+  <h3>!rpson</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enables Rock Paper Scissors.</div>
+  <br>
+  <h3>!rpsoff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disables Rock Paper Scissors.</div>
+</div>
+
+<div id="Big Vanish" class="tabcontent">
+  <h3>!bigvanish</h3>
+  <div>Get randomly timed out between 100 and 1,000,000 seconds.</div>
+  <div>The timeout will automatically be removed in 3 seconds.</div>
+  <br>
+  <h3>!bigvanishlb</h3>
+  <div>Show the 3 users with the highest timeouts from Big Vanish.</div>
+  <br>
+  <h3>!bigvanishlblow</h3>
+  <div>Show the 3 users with the lowest timeouts from Big Vanish.</div>
+  <br>
+  <h3>!bigvanishon</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enable Big Vanish.</div>
+  <br>
+  <h3>!bigvanishoff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disable Big Vanish.</div>
+</div>
+
+<div id="Custom Tourney" class="tabcontent">
+  <h3>!score</h3>
+  <div>Calculates the current score and formats it nicely to chat.</div>
+  <br>
+  <h3>!mc</h3>
+  <div>Displays the map count to chat. This is incremented automatically as each map is added.</div>
+  <br>
+  <h3>!setmaps [ # ]</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Sets the number of maps in the tourney.</div>
+  <br>
+  <h3>!setplacement [ placement string ]</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Sets the placement multipliers. Example:</div>
+  <div>For these placement multipliers: 1st: 2x | 2nd-8th: 1.5x | 9th+: 1x</div>
+  <div>The format would be !setplacement 1 2 2 1.5 9 1</div>
+  <br>
+  <h3>!addmap [ placement ] [ kills ]</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Add a map placement. The placement and kills will be saved and used later to calculate the score.</div>
+  <div>If the placement string is not correct when you add a map, just use !setplacement again. The original placement and kills and stored.</div>
+  <br>
+  <h3>!removemap</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Remove the last added map.</div>
+  <br>
+  <h3>!resetmaps</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Clear all of the maps.</div>
+  <br>
+  <h3>!customson</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enable custom tourney scores.</div>
+  <br>
+  <h3>!customsoff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disable custom tourney scores.</div>
+</div>
+
+<div id="Two vs Two" class="tabcontent">
+  <h3>!score</h3>
+  <div>Displays the team scores in chat in the following format: 8 - 2 | Up 6</div>
+  <div>This is automatically sent to chat every 30 seconds if two vs twos are enabled and not currently paused.</div>
+  <br>
+  <h3>!2v2on</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enable Two vs Two scoring.</div>
+  <br>
+  <h3>!2v2off</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disable Two vs Two scoring.</div>
+</div>
+
+<div id="Duels" class="tabcontent">
+  <h3>!duel [ username ]</h3>
+  <div>Challenge another user to a 50/50 duel. The loser will be timed out for 1 minute. </div>
+  <div>This has a 2 minute window for the other player to accept or deny.</div>
+  <br>
+  <h3>!accept</h3>
+  <div>Accept another player's challenge.</div>
+  <br>
+  <h3>!coward</h3>
+  <div>Reject another player's challenge.</div>
+  <br>
+  <h3>!cancel</h3>
+  <div>Cancel your challenge to another user.</div>
+  <br>
+  <h3>!duelscore</h3>
+  <div>Displays your duel wins and losses.</div>
+  <br>
+  <h3>!duellb</h3>
+  <div>Displays the 3 users with the top wins.</div>
+  <br>
+  <h3>!duellbratio</h3>
+  <div>Displays the 3 users with the best win / loss ratio.</div>
+  <br>
+  <h3>!duelon</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Enable duels.</div>
+  <br>
+  <h3>!dueloff</h3>
+  <div class="modonly">*Moderator Only*</div>
+  <div>Disable duels.</div>
+</div>
+
+<div id="tabenabled" class="tabenabled">
+</div>
+</div>
+<div class="footer">Any questions / issues / suggestions? The best way to contact me is on Twitch (zHekLeR) or Discord (zHekLeR#4857).</div>
+
+<script>
+let tabsEnabled = {};
+
+function openCommand(evt, evtName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(evtName).style.display = "block";
+  document.getElementById("tabenabled").innerHTML = tabsEnabled[evtName]?'':'These commands are not currently enabled in this channel.';
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+   
+</body>
+</html> 

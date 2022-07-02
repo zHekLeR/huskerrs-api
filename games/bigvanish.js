@@ -10,7 +10,7 @@ const pool = new Pool({
 
 
 // Function to randomly timeout the user between 100-1,000,000 seconds.
-async function bigVanish(id) {
+async function bigVanish(id, channel) {
     try {
 
         // Get value and construct response string.
@@ -19,25 +19,25 @@ async function bigVanish(id) {
         
         // Pull user from database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT * FROM bigvanish WHERE user_id = '${id}';`);
+        let res = await client.query(`SELECT * FROM bigvanish WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
         let person = res.rows[0];
         
         if (!person) {
 
             // User is not in the database. Add them.
             person = { user_id: id, vanish: rand, lowest: rand };
-            await client.query(`INSERT INTO bigvanish(user_id, vanish, lowest)VALUES('${person.user_id}', ${person.vanish}, ${person.lowest});`);
+            await client.query(`INSERT INTO bigvanish(user_id, vanish, lowest, stream)VALUES('${person.user_id}', ${person.vanish}, ${person.lowest}, '${channel.substring(1)}');`);
 
         } else {
 
             // Update database if new timeout is their highest.
             if (rand > person.vanish) {
-                await client.query(`UPDATE bigvanish SET vanish = ${rand} WHERE user_id = '${id}';`);
+                await client.query(`UPDATE bigvanish SET vanish = ${rand} WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
                 person.vanish = rand;
             } 
             
             if (rand < person.lowest) {
-                await client.query(`UPDATE bigvanish SET lowest = ${rand} WHERE user_id = '${id}';`);
+                await client.query(`UPDATE bigvanish SET lowest = ${rand} WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
                 person.lowest = rand;
             }
 
@@ -57,12 +57,12 @@ async function bigVanish(id) {
 
 
   // Function to retrieve the leaderboard.
-  async function bigVanishLb() {
+  async function bigVanishLb(channel) {
     try {
 
         // Pull users from the database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT * FROM bigvanish ORDER BY vanish DESC LIMIT 3;`);
+        let res = await client.query(`SELECT * FROM bigvanish WHERE stream = '${channel.substring(1)}' ORDER BY vanish DESC LIMIT 3;`);
         let top = res.rows;
         client.release();
     
@@ -82,12 +82,12 @@ async function bigVanish(id) {
 
 
 // Function to retrieve the lowest timeouts.
-async function bigVanishLow() {
+async function bigVanishLow(channel) {
     try {
 
         // Pull users from the database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT * FROM bigvanish ORDER BY lowest ASC LIMIT 3;`);
+        let res = await client.query(`SELECT * FROM bigvanish WHERE stream = '${channel.substring(1)}' ORDER BY lowest ASC LIMIT 3;`);
         let top = res.rows;
         client.release();
     

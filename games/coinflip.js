@@ -14,7 +14,7 @@ const choices = { "h": 1, "heads": 1, "t": 0, "tails": 0 };
 
 
 // Function to flip a coin. If the user guesses the result incorrectly, they get timed out for 1 minute.
-async function coinflip(id, input) {
+async function coinflip(id, input, channel) {
   try {
 
     // Declare variable..
@@ -33,21 +33,21 @@ async function coinflip(id, input) {
 
     // Pull user from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM coinflip WHERE user_id = '${id}';`);
+    let res = await client.query(`SELECT * FROM coinflip WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
     let person = res.rows[0];
 
     if (!person) {
 
       // User has not played before. Add stats to database.
       person = { user_id: id, correct: rand==choice?1:0, wrong: rand==choice?0:1 };
-      await client.query(`INSERT INTO coinflip(user_id, correct, wrong)VALUES('${person.user_id}', ${person.correct}, ${person.wrong});`);
+      await client.query(`INSERT INTO coinflip(user_id, correct, wrong, stream)VALUES('${person.user_id}', ${person.correct}, ${person.wrong}, '${channel.substring(1)}');`);
 
     } else {
 
       // Update user's stats in database.
       person.correct += rand==choice?1:0;
       person.wrong += rand==choice?0:1;
-      await client.query(`UPDATE coinflip SET ${rand==choice?'correct':'wrong'} = ${rand==choice?person.correct:person.wrong} WHERE user_id = '${id}';`);
+      await client.query(`UPDATE coinflip SET ${rand==choice?'correct':'wrong'} = ${rand==choice?person.correct:person.wrong} WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
 
     }
 
@@ -65,12 +65,12 @@ async function coinflip(id, input) {
 
 
 // Function to get user's stats.
-async function coinflipScore(id) {
+async function coinflipScore(id, channel) {
   try {
 
     // Pull user from the database.
     let client = await pool.connect();
-    let res = await client.query(`SELECT * FROM coinflip WHERE user_id = '${id}';`);
+    let res = await client.query(`SELECT * FROM coinflip WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
     let person = res.rows[0];
     client.release();
 
@@ -99,12 +99,12 @@ async function coinflipScore(id) {
 
 
 // Function to get the leaderboard.
-async function coinflipLb() {
+async function coinflipLb(channel) {
   try {
     
     // Pull top users from the database.
     let client = await pool.connect();
-    let res = await client.query(`(SELECT user_id, correct, wrong FROM coinflip WHERE correct = (SELECT MAX (correct) FROM coinflip) LIMIT 1) UNION ALL (SELECT user_id, correct, wrong FROM coinflip WHERE wrong = (SELECT MAX (wrong) FROM coinflip) LIMIT 1) ORDER BY correct DESC;`);
+    let res = await client.query(`(SELECT user_id, correct, wrong FROM coinflip WHERE correct = (SELECT MAX (correct) FROM coinflip WHERE stream = '${channel.substring(1)}') LIMIT 1) UNION ALL (SELECT user_id, correct, wrong FROM coinflip WHERE wrong = (SELECT MAX (wrong) FROM coinflip WHERE stream = '${channel.substring(1)}') LIMIT 1) ORDER BY correct DESC;`);
     let top = res.rows;
     client.release();
 

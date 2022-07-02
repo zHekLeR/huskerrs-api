@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+    <title>zHekBot - Two vs Two</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        font-family: Arial;
+    }
+    
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100vw;
+        max-height: 5vh;
+        padding: 0vh 1vw;
+        margin: 0;
+        background-color: green;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .content {
+        max-width: 100%;
+        background: white;
+        padding: 25px;
+        margin-top: 60px;
+        text-align: center;
+    }
+    
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100vw;
+        max-height: fit-content;
+        background-color: green;
+        color: white;
+        text-align: center;
+        padding: 1vh 1vw;
+        font-size: auto;
+    }  
+
+    button {
+        padding: 0.2vh 0.3vw;
+        text-align: center;
+    }
+
+    .content > div {
+        padding: 0.2vh 0.3vw;
+    }
+
+    .change {
+        width: 25px;
+        height: 25px;
+    }
+
+    #twitch {
+        background-color: #9146ff;
+        border-radius: 10px;
+    }
+
+    span {
+        font-size:18px;
+        width: 18px;
+        text-align: center;
+        display: inline-block;
+    }
+
+img { 
+  max-height: 5vh;
+  width: auto; 
+}
+    
+    </style>
+    <body>
+        <div class="navbar">
+            <a href="/"><img href="/" src="/images/Logo.png" style="float: left; padding-right: 0.3vw; cursor: pointer;"><button style="background: green; border: none; font-size: 3.25vh; padding-top: 0.5vh; color: white; cursor: pointer;">zHekBot</button></a>
+            <a href="/login" id="twitch" style="padding: 0vh 0.35vw;">
+                <img src="/images/Twitch.png" style="float: left; padding: 0.4vh 0vw;">
+                <button style="border: none; font-size: 2.65vh; color: white; background-color: #9146ff; cursor: pointer; padding-top: 0.7vh;">Logout of Twitch</button>
+            </a>
+        </div>
+
+    <div class="content">
+        <h1>#Placeholder#'s 2v2 Counter</h1>
+        <div>
+            <button id="pause" onclick="pause()">Pause</button><br>&emsp;&emsp;
+            <button id="send" onclick="sendScore()">Send Scores</button>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+            <button id="enable" onclick="enable()">Enable/Disable Scoring</button>
+        </div>
+        <div>
+            <input id='user' type="text" readonly="true" value="#channel#" size="8" style="text-align:center;">
+            Kills: 
+            <button class="change" onclick="add('hKills')">+</button> 
+            <span id="hKills">0</span> 
+            <button class="change" onclick="sub('hKills')">-</button>&ensp;
+            <input type="checkbox" id="hStatus" onclick="upStatus('hStatus')">&ensp;
+            <label for="hStatus">Enabled</label>
+        </div>
+        <div>
+            <input type="text" id="tName" placeholder="Teammate" size="8" style="text-align:center;"> 
+            Kills: 
+            <button class="change" onclick="add('tKills')">+</button> 
+            <span id="tKills">0</span> 
+            <button class="change" onclick="sub('tKills')">-</button>&ensp;
+            <input type="checkbox" id="tStatus" onclick="upStatus('tStatus')">&ensp;
+            <label for="tStatus">Enabled</label>
+        </div>
+        <div>
+            <input type="text" id="o1Name" placeholder="Opponent 1" size="8" style="text-align:center;">
+            Kills: 
+            <button class="change" onclick="add('o1Kills')">+</button> 
+            <span id="o1Kills">0</span> 
+            <button class="change" onclick="sub('o1Kills')">-</button>&ensp;
+            <input type="checkbox" id="o1Status" onclick="upStatus('o1Status')">&ensp;
+            <label for="o1Status">Enabled</label>
+        </div>
+        <div><input type="text" id="o2Name" placeholder="Opponent 2" size="8" style="text-align:center;">
+            Kills: 
+            <button class="change" onclick="add('o2Kills')">+</button> 
+            <span id="o2Kills">0</span> 
+            <button class="change" onclick="sub('o2Kills')">-</button>&ensp;
+            <input type="checkbox" id="o2Status" onclick="upStatus('o2Status')">&ensp;
+            <label for="o2Status">Enabled</label>
+        </div>
+        <div><button onclick="reset()">Reset All</button></div>
+        <div>
+            Map Reset (carry scores over): 
+            <button class="change" onclick="mapreset(1)">+</button> 
+            <button class="change" onclick="mapreset(0)" style="text-align: center; width: 45px;">Zero</button>
+            <button class="change" onclick="mapreset(-1)">-</button>
+            <span id="updown" style="display: inline-block; font-size: auto; width: 75px;">-</span> 
+        </div>
+        <br><br>
+        <div>
+            There are two different ways to get the scores from this page to chat (or a combination of both).<br>
+            Clicking the 'Resume' button will automatically send scores from this page to the server every 5 seconds.<br>
+            Then, the server will automatically put the score in chat every 30 seconds (or when !score is put in chat).<br>
+            Clicking the 'Send Scores' button will send the current scores as they appear and put them in chat.
+        </div><br>
+        <div>
+            If the map is reset but the current scores will carry over, you can enter this in the appropriate input and it will be accounted for.
+        </div>
+    </div>
+
+    <footer class="footer">Any questions / issues / suggestions? The best way to contact me is on Twitch (zHekLeR) or Discord (zHekLeR#4857).</footer>
+
+    <script>
+        let status = { "needsUpdate": false, "hStatus": false, "tStatus": false, "o1Status": false, "o2Status": false };
+        let sInt;
+        let resetvalue = 0;
+
+        (function first() {
+            let channel = document.getElementById('user').value;
+            fetch(`/twovtwoscores/${channel.toLowerCase()}`, {
+                method: "GET"
+            }).then(res => res.text())
+            .then(body => {
+                scores = body.split(' ');
+                if (scores.length == 13) {
+                    document.getElementById('hKills').innerHTML = parseInt(scores[0]);
+                    document.getElementById('tKills').innerHTML = parseInt(scores[1]);
+                    document.getElementById('o1Kills').innerHTML = parseInt(scores[2]);
+                    document.getElementById('o2Kills').innerHTML = parseInt(scores[3]);
+                    document.getElementById('tName').value = scores[4];
+                    document.getElementById('o1Name').value = scores[5];
+                    document.getElementById('o2Name').value = scores[6];
+                    document.getElementById('hStatus').checked = scores[7] === 'true';
+                    status['hStatus'] = scores[7] === 'true';
+                    document.getElementById('tStatus').checked = scores[8] === 'true';
+                    status['tStatus'] = scores[8] === 'true';
+                    document.getElementById('o1Status').checked = scores[9] === 'true';
+                    status['o1Status'] = scores[9] === 'true';
+                    document.getElementById('o2Status').checked = scores[10] === 'true';
+                    status['o2Status'] = scores[10] === 'true';
+                    document.getElementById('pause').innerHTML = scores[11] === 'true'?'Pause':'Resume';
+                    if (scores[11] === 'true') sInt = setInterval(function() { update() }, 5000);
+                    resetvalue = parseInt(scores[12]);
+                    document.getElementById('updown').innerHTML = (resetvalue > 0?'Up':resetvalue < 0?'Down':'') + ` ${Math.abs(resetvalue)}`;
+                } else {
+                    document.getElementById('pause').innerHTML = 'Resume';
+                }
+                console.log('Success during first.');
+            }).catch(err => {
+                console.log(`Error during first: ${err}`);
+            })
+        })();
+
+        function upStatus(setStat) {
+            let upDat = !(document.getElementById("hStatus").checked === status["hStatus"] && document.getElementById("tStatus").checked === status["tStatus"] &&
+                document.getElementById("o1Status").checked === status["o1Status"] && document.getElementById("o2Status").checked === status["o2Status"]);
+            status[setStat] = document.getElementById(setStat).checked;
+
+            if (upDat === status["needsUpdate"]) {
+                return;
+            } else {
+                status["needsUpdate"] = upDat;
+                document.getElementById("enable").style = upDat?'background-color: orange;':' ';
+            }
+        }
+
+
+        function enable() {
+            document.getElementById("enable").disabled = true;
+            setTimeout(function() {document.getElementById("enable").disabled = false;}, 1000);
+
+            if (!status["needsUpdate"]) return;
+
+            let channel = document.getElementById('user').value.toLowerCase();
+            let temp = {
+                'needsUpdate': status['needsUpdate'],
+                'hStatus': status['hStatus'],
+                'tStatus': status['tStatus'],
+                'o1Status': status['o1Status'],
+                'o2Status': status['o2Status']
+            }
+
+            let eHeaders = { };
+            
+            eHeaders['hName'] = channel;
+            eHeaders['tName'] = document.getElementById('tName').value.toLowerCase();
+            eHeaders['o1Name'] = document.getElementById('o1Name').value.toLowerCase();
+            eHeaders['o2Name'] = document.getElementById('o2Name').value.toLowerCase();
+            eHeaders['Content-Type'] = 'application/json';
+
+            fetch(`/post/${channel}/enable`, {
+                method: "POST",
+                body: JSON.stringify(status),
+                headers: eHeaders
+            })
+            .then(async res => {
+                if (res.status == 200) {
+                    upDat = false;
+                    document.getElementById('enable').style = '';
+                    status = await res.json();
+
+                    document.getElementById('hStatus').checked = status['hStatus'];
+                    document.getElementById('tStatus').checked = status['tStatus'];
+                    document.getElementById('o1Status').checked = status['o1Status'];
+                    document.getElementById('o2Status').checked = status['o2Status'];
+                } else {
+                    alert(`Status ${res.status}: ${res.status == 405?'Bot not enabled in channel.':res.status == 406?'Two v Two not enabled.':await res.text()}`);
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                alert(err);
+            });
+        }
+
+        function update() {
+            try {
+                fetch(`/post/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
+                    method: "GET",
+                    headers: {
+                        hName: document.getElementById("user").value.toLowerCase(),
+                        tName: document.getElementById("tName").value.toLowerCase(),
+                        o1Name: document.getElementById("o1Name").value.toLowerCase(),
+                        o2Name: document.getElementById("o2Name").value.toLowerCase(),
+                        mapreset: resetvalue
+                    }
+                })
+                .then(res => {
+                    if (res.status != 200) {
+                        clearInterval(sInt);
+                        document.getElementById("pause").innerHTML = 'Resume';
+                    } else {
+                        console.log('2v2 update success.');
+                    }
+                })
+                .catch(err => {
+                    clearInterval(sInt);
+                    document.getElementById("pause").innerHTML = 'Resume';
+                    console.log(`Error during update function: ${err}`);
+                });
+            } catch (err) {
+                clearInterval(sInt);
+                document.getElementById("pause").innerHTML = 'Resume';
+                console.log(`Error during update function: ${err}`);
+            }
+        }
+
+        function sendScore() {
+            try {
+                document.getElementById("send").disabled = true;
+                setTimeout(function() {document.getElementById("send").disabled = false;}, 1000);
+                fetch(`/send/${document.getElementById('user').value.toLowerCase()}/${document.getElementById('hKills').innerHTML}/${document.getElementById('tKills').innerHTML}/${document.getElementById('o1Kills').innerHTML}/${document.getElementById('o2Kills').innerHTML}`, {
+                    method: "GET",
+                    headers: {
+                        tname: document.getElementById('tName').value.toLowerCase(),
+                        o1name: document.getElementById('o1Name').value.toLowerCase(),
+                        o2name: document.getElementById('o2Name').value.toLowerCase(),
+                        mapreset: resetvalue
+                    }
+                });
+                console.log('2v2 send success.');
+            } catch (err) {
+                if (sInt) {
+                    clearInterval(sInt);
+                }
+                console.log(`Error during send function: ${err}`);
+            }
+        }
+
+        function add(id) {
+            document.getElementById(id).innerHTML = parseInt(document.getElementById(id).innerHTML) + 1;
+        }
+
+        function sub(id) {
+            let x = document.getElementById(id);
+            x.innerHTML = parseInt(x.innerHTML)==0?0:parseInt(x.innerHTML) - 1;
+        }
+
+        function pause() {
+            try {
+                document.getElementById("pause").disabled = true;
+                setTimeout(function() {document.getElementById("pause").disabled = false;}, 1000);
+                fetch(`/tvtpause/${document.getElementById("user").value.toLowerCase()}`, {
+                    method: "GET",
+                    headers: {
+                        tname: document.getElementById('tName').value.toLowerCase(),
+                        o1name: document.getElementById('o1Name').value.toLowerCase(),
+                        o2name: document.getElementById('o2Name').value.toLowerCase()
+                    }
+                }).then(async res => {
+                    let text = document.getElementById("pause");
+                    text.innerHTML = await res.status == 201?'Pause':'Resume';
+                    if (res.status == 201) {
+                        sInt = setInterval(function() { update() }, 5000);
+                    } else {
+                        clearInterval(sInt);
+                    }
+                }).catch(err => {
+                    console.log(`2v2 pause failed.`);
+                })
+            } catch (err) {
+                console.log(`Error during pause function: ${err}`);
+            }
+        }
+
+        function reset() {
+            try {
+                fetch(`/post/${document.getElementById('user').value.toLowerCase()}/reset`, {
+                    method: "GET",
+                    headers: {
+                        tname: document.getElementById('tName').value.toLowerCase(),
+                        o1name: document.getElementById('o1Name').value.toLowerCase(),
+                        o2name: document.getElementById('o2Name').value.toLowerCase()
+                    }
+                }).then(res => {
+                    console.log('2v2 reset success.');
+                    document.getElementById('hKills').innerHTML = 0;
+                    document.getElementById('tKills').innerHTML = 0;
+                    document.getElementById('o1Kills').innerHTML = 0;
+                    document.getElementById('o2Kills').innerHTML = 0;
+                }).catch(err => {
+                    console.log('2v2 reset failed.');
+                });
+            } catch (err) {
+                console.log(`Error during 2v2 reset: ${err}`);
+            }
+        }
+
+        function mapreset(change) {
+            resetvalue = change == 0?0:resetvalue + change;
+            document.getElementById('updown').innerHTML = (resetvalue > 0?'Up':resetvalue < 0?'Down':'') + ` ${Math.abs(resetvalue)}`;
+        }
+    </script>
+
+</body>
+</html>

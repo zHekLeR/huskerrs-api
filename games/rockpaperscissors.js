@@ -15,7 +15,7 @@ const spr = ["rock", "paper", "scissors"];
 
 
 // Function to play rock paper scissors. User is timed out for 1 minute if they lose.
-async function rps(id, input) {
+async function rps(id, input, channel) {
     try {
 
         // Determine if input is valid.
@@ -40,14 +40,14 @@ async function rps(id, input) {
     
         // Pull user from the database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT * FROM rockpaperscissors WHERE user_id = '${id}';`);
+        let res = await client.query(`SELECT * FROM rockpaperscissors WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
         let person = res.rows[0];
 
         if (!person) {
 
             // User is not in the database. Add them to it.
             person = { user_id: id, win: result==1?1:0, loss: result==-1?1:0, tie: result==0?1:0 };
-            await client.query(`INSERT INTO rockpaperscissors(user_id, win, loss, tie)VALUES('${person.user_id}', ${person.win}, ${person.loss}, ${person.tie});`);
+            await client.query(`INSERT INTO rockpaperscissors(user_id, win, loss, tie, stream)VALUES('${person.user_id}', ${person.win}, ${person.loss}, ${person.tie}, '${channel.substring(1)}');`);
 
         } else {
 
@@ -55,7 +55,7 @@ async function rps(id, input) {
             person.win += (result==1?1:0);
             person.loss += (result==-1?1:0);
             person.tie += (result==0?1:0);
-            await client.query(`UPDATE rockpaperscissors SET ${result==1?'win':result==0?'tie':'loss'} = ${result==1?person.win:result==0?person.tie:person.loss} WHERE user_id = '${id}';`);
+            await client.query(`UPDATE rockpaperscissors SET ${result==1?'win':result==0?'tie':'loss'} = ${result==1?person.win:result==0?person.tie:person.loss} WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
 
         }
     
@@ -73,12 +73,12 @@ async function rps(id, input) {
 
 
 // Function to get user stats.
-async function rpsScore(id) {
+async function rpsScore(id, channel) {
     try {
     
         // Pull user from the database.
         let client = await pool.connect();
-        let res = await client.query(`SELECT * FROM rockpaperscissors WHERE user_id = '${id}';`);
+        let res = await client.query(`SELECT * FROM rockpaperscissors WHERE user_id = '${id}' AND stream = '${channel.substring(1)}';`);
         person = res.rows[0];
         client.release();
     
@@ -105,12 +105,12 @@ async function rpsScore(id) {
 
 
 // Function to get leaderboard.
-async function rpsLb() {
+async function rpsLb(channel) {
     try {
 
         // Pull users from database.
         let client = await pool.connect();
-        let res = await client.query(`(SELECT user_id, win, loss, tie FROM rockpaperscissors WHERE win = (SELECT MAX (win) FROM rockpaperscissors) LIMIT 1) UNION ALL (SELECT user_id, win, loss, tie FROM rockpaperscissors WHERE loss = (SELECT MAX (loss) FROM rockpaperscissors) LIMIT 1) UNION ALL (SELECT user_id, win, loss, tie FROM rockpaperscissors WHERE tie = (SELECT MAX (tie) FROM rockpaperscissors) LIMIT 1) ORDER BY win DESC, loss DESC;`);
+        let res = await client.query(`(SELECT user_id, win, loss, tie FROM rockpaperscissors WHERE win = (SELECT MAX (win) FROM rockpaperscissors WHERE stream = '${channel.substring(1)}') LIMIT 1) UNION ALL (SELECT user_id, win, loss, tie FROM rockpaperscissors WHERE loss = (SELECT MAX (loss) FROM rockpaperscissors WHERE stream = '${channel.substring(1)}') LIMIT 1) UNION ALL (SELECT user_id, win, loss, tie FROM rockpaperscissors WHERE tie = (SELECT MAX (tie) FROM rockpaperscissors WHERE stream = '${channel.substring(1)}') LIMIT 1) ORDER BY win DESC, loss DESC;`);
         client.release();
         let top = res.rows;
 
